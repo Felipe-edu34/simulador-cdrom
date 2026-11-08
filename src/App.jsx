@@ -27,10 +27,7 @@ import {
   Image as ImageIcon,
   Music,
   Film
-} from 'react-react';
-
-// Nota: importamos de 'lucide-react'
-import * as LucideIcons from 'lucide-react';
+} from 'lucide-react';
 
 // ============================================================================
 // BASE DE DADOS EQUILIBRADA (RODRIGO COPETTI & RETROREVERSING)
@@ -1725,7 +1722,7 @@ export default function ArquiteturaConsolesCDROM() {
           className="w-6 h-6 rounded-lg bg-purple-500/20 border border-purple-500/40 text-purple-400 flex items-center justify-center shrink-0 mt-0.5"
           title="Etapa de Imagem / Vídeo Gráfico"
         >
-          <LucideIcons.Image className="w-3.5 h-3.5" />
+          <ImageIcon className="w-3.5 h-3.5" />
         </span>
       );
     }
@@ -1735,7 +1732,7 @@ export default function ArquiteturaConsolesCDROM() {
           className="w-6 h-6 rounded-lg bg-pink-500/20 border border-pink-500/40 text-pink-400 flex items-center justify-center shrink-0 mt-0.5"
           title="Etapa de Filme / Vídeo FMV"
         >
-          <LucideIcons.Film className="w-3.5 h-3.5" />
+          <Film className="w-3.5 h-3.5" />
         </span>
       );
     }
@@ -1745,7 +1742,7 @@ export default function ArquiteturaConsolesCDROM() {
           className="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5"
           title="Etapa de Som / Música"
         >
-          <LucideIcons.Music className="w-3.5 h-3.5" />
+          <Music className="w-3.5 h-3.5" />
         </span>
       );
     }
@@ -1755,7 +1752,7 @@ export default function ArquiteturaConsolesCDROM() {
           className="w-6 h-6 rounded-lg bg-orange-500/20 border border-orange-500/40 text-orange-400 flex items-center justify-center shrink-0 mt-0.5"
           title="Etapa de Leitura do CD-ROM"
         >
-          <LucideIcons.Disc className="w-3.5 h-3.5" />
+          <Disc className="w-3.5 h-3.5" />
         </span>
       );
     }

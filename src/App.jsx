@@ -31,7 +31,7 @@ import {
 
 // ============================================================================
 // BASE DE DADOS COMPLETA (RODRIGO COPETTI & RETROREVERSING)
-// Cada passo traz a instrução individual de TODOS os componentes ativos ao mesmo tempo!
+// Todos os barramentos usam caminhos <path> direcionados do início ao fim!
 // ============================================================================
 
 const ARCHITECTURE_DATA = {
@@ -92,9 +92,9 @@ const ARCHITECTURE_DATA = {
       {
         step: 1,
         shortTitle: 'System Card',
-        title: 'Slot de Cartucho (38 pinos): System Card + CPU HuC6280',
+        title: 'Slot de Cartucho (38 pinos): System Card → CPU HuC6280',
         summary:
-          'Como o console original não sabia ler CDs de fábrica, inserimos a System Card na entrada de cartucho para fornecer o sistema de boot (BIOS) e expandir a memória RAM para a CPU.',
+          'Como o console original não sabia ler CDs de fábrica, inserimos a System Card na entrada de cartucho para fornecer o sistema de boot (BIOS) e expandir a memória RAM até a CPU.',
         simpleAnalogy:
           'Como o videogame nasceu sem saber o que é um CD, colocamos um "cartão-tradutor" (System Card) na entrada de jogos. Ele ensina o aparelho a usar o CD e aumenta a mesa de trabalho (RAM).',
         flowSteps: [
@@ -114,13 +114,13 @@ const ARCHITECTURE_DATA = {
             nodeId: 'pce-cpu',
             tag: '3. CPU HuC6280 + MMU',
             iconType: 'code',
-            text: 'Lê a BIOS do cartão pelo barramento e mapeia os novos bancos de RAM nas páginas da MMU.'
+            text: 'Recebe a BIOS do cartão pelo barramento e mapeia os novos bancos de RAM nas páginas da MMU.'
           }
         ],
         insight:
           'Seg. Copetti: Os CDs do PC Engine não têm trava de região! A verificação acontecia apenas nos pinos do cartão inserido no slot HuCard.',
         speechSimple:
-          '"Como o videogame original não sabia ler CDs, colocamos um cartão chamado System Card na entrada normal de jogos. Ele entrega o manual de instruções do leitor de CD para a CPU e ainda adiciona até 2 Megabytes de memória extra!"',
+          '"Como o videogame original não sabia ler CDs, colocamos um cartão chamado System Card na entrada normal de jogos. Vejam a linha amarela completa levando o sistema do CD e até 2 Megabytes de memória extra direto para a CPU!"',
         speechTech:
           '"Como o PC Engine base não tinha BIOS de CD, inserimos a System Card no slot de 38 pinos: ela fornece as rotinas de controle do CD-ROM² para a CPU HuC6280 e expande a RAM mapeada na MMU em +192 KB ou +2 MB."',
         activeNodes: ['pce-syscard', 'pce-cpu'],
@@ -131,8 +131,8 @@ const ARCHITECTURE_DATA = {
             color: '#f59e0b',
             type: 'code',
             label: 'BIOS + RAM Extra',
-            badgeX: 365,
-            badgeY: 105
+            badgeX: 355,
+            badgeY: 112
           }
         ]
       },
@@ -167,9 +167,9 @@ const ARCHITECTURE_DATA = {
         insight:
           'Diferente dos cartuchos (onde a leitura é instantânea), no CD é obrigatório copiar a fase para a memória RAM antes de jogar — criando as telas de Loading.',
         speechSimple:
-          '"Vejam os 3 blocos ativos: o laser lê o CD a 150 KB por segundo, guarda os arquivos da fase na memória de 64 KB da base acoplada (que também tem 2 KB para saves) e entrega tudo pela porta traseira para a CPU processar."',
+          '"Vejam os 3 blocos ativos: o laser lê o CD a 150 KB por segundo, guarda os arquivos da fase na memória de 64 KB da base acoplada e envia pelo barramento azul direto até a CPU!"',
         speechTech:
-          '"Para carregar uma fase, o leitor 1x transfere dados a 150 KB/s via SCSI para os 64 KB de Work RAM da Interface Unit (256 KB no Super CD-ROM²), e a CPU HuC6280 acessa esses bancos pela porta de expansão traseira."',
+          '"Para carregar uma fase, o leitor 1x transfere dados a 150 KB/s via SCSI para os 64 KB de Work RAM da Interface Unit (256 KB no Super CD-ROM²), e a CPU HuC6280 lê esses bancos pela porta de expansão traseira."',
         activeNodes: ['pce-drive', 'pce-cdram', 'pce-cpu'],
         activeBuses: ['bus-pce-scsi', 'bus-pce-exp'],
         packets: [
@@ -185,9 +185,9 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-pce-exp',
             color: '#38bdf8',
             type: 'code',
-            label: 'Bus 8-bit Expansão',
-            badgeX: 365,
-            badgeY: 235
+            label: 'Dados p/ a CPU',
+            badgeX: 355,
+            badgeY: 262
           }
         ]
       },
@@ -196,7 +196,7 @@ const ARCHITECTURE_DATA = {
         shortTitle: 'Vídeo Dual-Chip',
         title: 'Caminho Completo da Imagem: 5 Componentes Gráficos em Ação',
         summary:
-          'Neste passo 5 blocos trabalham juntos: os gráficos saem da RAM do CD, passam pela CPU e descem pela dupla de vídeo de 16 bits (VDC + VRAM de 64 KB + VCE) até formar a imagem na TV.',
+          'Neste passo 5 blocos trabalham em sequência: os gráficos saem da RAM do CD, passam pela CPU e descem pela dupla de vídeo de 16 bits (VDC → VRAM de 64 KB → VCE) até formar a imagem na TV.',
         simpleAnalogy:
           'A CPU pega os desenhos guardados na bancada do CD e entrega para dois artistas de 16 bits: o primeiro (VDC) monta o cenário no seu caderno (VRAM) e o segundo (VCE) pinta tudo com 482 cores!',
         flowSteps: [
@@ -210,19 +210,19 @@ const ARCHITECTURE_DATA = {
             nodeId: 'pce-cpu',
             tag: '2. CPU HuC6280 + MMU',
             iconType: 'code',
-            text: 'Busca os gráficos na RAM do CD pela porta traseira e transfere em pares de bytes para o vídeo.'
+            text: 'Busca os gráficos na RAM do CD pela porta traseira e envia em pares de bytes para o chip VDC.'
           },
           {
             nodeId: 'pce-vdc',
             tag: '3. VDC: HuC6270 (Desenhista)',
             iconType: 'image',
-            text: 'Organiza a camada de fundo (Tiles 8×8) e atualiza a tabela de 64 Sprites (SATB) via DMA interno.'
+            text: 'Recebe os gráficos da CPU, monta a camada de fundo (Tiles 8×8) e atualiza os 64 Sprites via DMA.'
           },
           {
             nodeId: 'pce-vram',
             tag: '4. VRAM Dedicada (64 KB 16-bit)',
             iconType: 'image',
-            text: 'Guarda os gráficos em palavras de 16 bits, permitindo ao VDC ler duas linhas de pixels por vez.'
+            text: 'Guarda os desenhos em palavras de 16 bits, permitindo ao VDC ler duas linhas de pixels por vez.'
           },
           {
             nodeId: 'pce-vce',
@@ -234,26 +234,42 @@ const ARCHITECTURE_DATA = {
         insight:
           'Seg. Copetti: Embora a CPU seja de 8 bits, o chip VDC acessa a VRAM em palavras de 16 bits! Isso dobrava a velocidade gráfica e deixava o visual no nível dos consoles de 16 bits.',
         speechSimple:
-          '"Olhem os 5 componentes funcionando juntos para gerar a imagem: a CPU busca os desenhos nos 64 KB do CD e entrega para o chip VDC. O VDC guarda tudo na memória de vídeo de 16 bits (VRAM), monta os cenários e 64 personagens, e passa para o chip VCE pintar até 482 cores na TV!"',
+          '"Olhem a direção exata da imagem passando pelos 5 componentes: ela sai da memória de 64 KB do CD, passa pela CPU, entra pela lateral do chip VDC, desce para a memória VRAM de 16 bits e termina no chip VCE pintando 482 cores na TV!"',
         speechTech:
-          '"Vejam os 5 blocos do pipeline gráfico: a CPU HuC6280 busca os tiles na CD-RAM e alimenta o VDC (HuC6270). O VDC acessa seus 64 KB de VRAM em palavras de 16 bits, faz o DMA interno da SATB para 64 sprites e envia um stream de 9 bits para o VCE (HuC6260) colorir até 482 cores."',
+          '"Vejam os 5 blocos do pipeline gráfico com direção completa: a CPU HuC6280 busca os tiles na CD-RAM e envia ao VDC (HuC6270). O VDC grava nos 64 KB de VRAM em palavras de 16 bits e envia o stream de 9 bits para o VCE (HuC6260) colorir até 482 cores."',
         activeNodes: ['pce-cdram', 'pce-cpu', 'pce-vdc', 'pce-vram', 'pce-vce'],
-        activeBuses: ['bus-pce-exp', 'bus-pce-vdc', 'bus-pce-vce'],
+        activeBuses: ['bus-pce-exp', 'bus-pce-cpu-vdc', 'bus-pce-vdc', 'bus-pce-vce'],
         packets: [
+          {
+            pathId: 'path-pce-exp',
+            color: '#10b981',
+            type: 'image',
+            label: '1. Gráficos do CD',
+            badgeX: 365,
+            badgeY: 262
+          },
+          {
+            pathId: 'path-pce-cpu-vdc',
+            color: '#38bdf8',
+            type: 'image',
+            label: '2. CPU -> Vídeo VDC',
+            badgeX: 255,
+            badgeY: 298
+          },
           {
             pathId: 'path-pce-vdc',
             color: '#38bdf8',
             type: 'image',
-            label: 'Sprites & Cenários 16b',
-            badgeX: 175,
-            badgeY: 315
+            label: '3. Words 16-bit VRAM',
+            badgeX: 95,
+            badgeY: 390
           },
           {
             pathId: 'path-pce-vce',
             color: '#a855f7',
             type: 'image',
-            label: 'Imagem 482 Cores',
-            badgeX: 175,
+            label: '4. Pinta 482 Cores',
+            badgeX: 95,
             badgeY: 472
           }
         ]
@@ -261,11 +277,11 @@ const ARCHITECTURE_DATA = {
       {
         step: 4,
         shortTitle: 'Áudio Triplo',
-        title: 'Mixagem Tripla: Leitor de CD + Chip de Vozes ADPCM + Som da CPU',
+        title: 'Mixagem Tripla: Leitor de CD + Som da CPU → Mixer ADPCM',
         summary:
-          'Os 3 componentes sonoros tocam juntos: o leitor manda música de estúdio direto do disco, o chip ADPCM fala as vozes dubladas usando 64 KB próprios e a CPU gera 6 canais de efeitos.',
+          'Os 3 componentes sonoros se encontram no mixer: o leitor manda música de estúdio direto do disco, a CPU envia seus 6 canais de efeitos e o módulo ADPCM soma as vozes dubladas de 64 KB.',
         simpleAnalogy:
-          'É uma banda com 3 músicos: o CD toca a música gravada em estúdio, um chip com memória própria fala as vozes dos personagens e a CPU faz os efeitos de tiro e pulo!',
+          'É uma banda com 3 músicos: o CD toca a música gravada em estúdio, a CPU manda os efeitos de tiro/pulo e o chip ADPCM fala as vozes dos personagens!',
         flowSteps: [
           {
             nodeId: 'pce-drive',
@@ -274,34 +290,42 @@ const ARCHITECTURE_DATA = {
             text: 'Lê as faixas de música estéreo direto do disco óptico sem gastar 1 byte de memória RAM.'
           },
           {
-            nodeId: 'pce-adpcm',
-            tag: '2. Áudio ADPCM + Mixer (64 KB)',
-            iconType: 'audio',
-            text: 'Decodifica vozes dubladas usando 64 KB exclusivos (chip OKI MSM5205) e mistura com o som do CD.'
-          },
-          {
             nodeId: 'pce-cpu',
-            tag: '3. CPU HuC6280 (6 Canais PSG)',
+            tag: '2. CPU HuC6280 (6 Canais PSG)',
             iconType: 'audio',
             text: 'Gera simultaneamente 6 canais de ondas programáveis para os efeitos sonoros da partida.'
+          },
+          {
+            nodeId: 'pce-adpcm',
+            tag: '3. Áudio ADPCM + Mixer (64 KB)',
+            iconType: 'audio',
+            text: 'Decodifica vozes dubladas usando 64 KB exclusivos (chip OKI MSM5205) e mistura com o CD e a CPU.'
           }
         ],
         insight:
           'Separar 64 KB exclusivos para o som ADPCM permitia ter falas dubladas sem diminuir o espaço dos gráficos na memória principal.',
         speechSimple:
-          '"Para fechar o PC Engine, vejam os 3 blocos de som atuando juntos: o leitor toca a música de estúdio direto do CD, o módulo do meio usa 64 KB exclusivos para falar as vozes dubladas e o processador gera 6 canais de efeitos sonoros!"',
+          '"Para fechar o PC Engine, vejam as linhas de som: o leitor manda a música de estúdio direto do CD e a CPU manda os efeitos sonoros para se juntarem às vozes dubladas nos 64 KB do módulo ADPCM!"',
         speechTech:
-          '"O subsistema de áudio combina 3 fontes em paralelo: streaming Red Book CD-DA direto do leitor óptico, vozes digitais no decodificador OKI MSM5205 com 64 KB de RAM exclusivos e os 6 canais Waveform PSG integrados na CPU HuC6280."',
+          '"O subsistema de áudio combina 3 fontes em paralelo: streaming Red Book CD-DA vindo do leitor óptico, os 6 canais Waveform PSG enviados pela CPU HuC6280 e as vozes digitais no decodificador OKI MSM5205 com 64 KB próprios."',
         activeNodes: ['pce-drive', 'pce-adpcm', 'pce-cpu'],
-        activeBuses: ['bus-pce-audio'],
+        activeBuses: ['bus-pce-audio', 'bus-pce-cpu-audio'],
         packets: [
           {
             pathId: 'path-pce-audio',
             color: '#10b981',
             type: 'audio',
-            label: 'Música CD + Vozes',
-            badgeX: 735,
-            badgeY: 360
+            label: 'Música CD-DA',
+            badgeX: 765,
+            badgeY: 382
+          },
+          {
+            pathId: 'path-pce-cpu-audio',
+            color: '#ec4899',
+            type: 'audio',
+            label: 'PSG + Vozes 64KB',
+            badgeX: 355,
+            badgeY: 382
           }
         ]
       }
@@ -513,7 +537,7 @@ const ARCHITECTURE_DATA = {
         shortTitle: 'Sub-CPU 12.5 MHz',
         title: 'Mega-CD em Ação: Leitor 1x → 2º Motorola 68000 → 512 KB PRG-RAM',
         summary:
-          'Os 3 blocos da direita entram em ação: o leitor óptico lê o CD a 150 KB/s, entrega os dados para o segundo Motorola 68000 (12.5 MHz) e abastece os 512 KB de memória PRG-RAM.',
+          'Os 3 blocos da direita entram em ação: o leitor óptico lê o CD a 150 KB/s, entrega os dados pelo barramento para o segundo Motorola 68000 (12.5 MHz) e abastece os 512 KB de memória PRG-RAM.',
         simpleAnalogy:
           'O Mega-CD traz praticamente um segundo videogame inteiro lá dentro: o leitor de CD entrega os arquivos para um segundo "chefe" 63% mais rápido, que trabalha numa mesa de 512 KB (8 vezes maior que a do Mega Drive)!',
         flowSteps: [
@@ -539,7 +563,7 @@ const ARCHITECTURE_DATA = {
         insight:
           'Com dois processadores 68000 reais rodando ao mesmo tempo, o Mega-CD podia descompactar vídeos e calcular efeitos enquanto o Mega Drive mantinha o jogo fluido.',
         speechSimple:
-          '"Ao encaixar o Mega-CD, esses 3 blocos da direita entram em ação: o leitor lê o disco a 150 KB por segundo, entrega para um segundo processador Motorola 68000 que é 63% mais rápido que o do Mega Drive, e guarda tudo numa memória gigante de 512 KB!"',
+          '"Ao encaixar o Mega-CD, esses 3 blocos da direita entram em ação: vejam a linha laranja subindo do leitor de CD a 150 KB/s direto para o segundo processador 68000 (12.5 MHz), e descendo pela linha verde para guardar tudo nos 512 KB de memória!"',
         speechTech:
           '"No módulo Mega-CD atuam 3 componentes: o leitor 1x CLV transfere dados a 150 KB/s para a Sub-CPU Motorola 68000 a 12.5 MHz, que armazena e descomprime o código e os streams de vídeo nos seus 512 KB de Program RAM exclusiva."',
         activeNodes: ['mcd-drive', 'mcd-subcpu', 'mcd-prgram'],
@@ -550,8 +574,8 @@ const ARCHITECTURE_DATA = {
             color: '#f97316',
             type: 'disc',
             label: '150 KB/s (Dados CD)',
-            badgeX: 845,
-            badgeY: 165
+            badgeX: 885,
+            badgeY: 132
           },
           {
             pathId: 'path-mcd-prg',
@@ -559,7 +583,7 @@ const ARCHITECTURE_DATA = {
             type: 'code',
             label: '512 KB PRG-RAM',
             badgeX: 700,
-            badgeY: 222
+            badgeY: 216
           }
         ]
       },
@@ -568,7 +592,7 @@ const ARCHITECTURE_DATA = {
         shortTitle: 'ASIC & Word RAM',
         title: 'Ponte Gráfica Completa: Os 4 Componentes da Rotação e Bank Swap',
         summary:
-          'Aqui 4 componentes funcionam juntos: a Sub-CPU comanda a cena, o ASIC gira e fatia a imagem em blocos 8×8, a Word RAM faz a troca de bancada (Bank Swap) e o 68000 principal recebe a imagem pronta!',
+          'Aqui 4 componentes funcionam em sequência: a Sub-CPU comanda a cena, o ASIC gira e fatia a imagem em blocos 8×8, a Word RAM faz a troca de bancada (Bank Swap) e o 68000 principal recebe a imagem pronta!',
         simpleAnalogy:
           'Como os dois processadores não podem mexer na mesma mesa juntos, eles usam 4 etapas: o 2º 68000 manda o desenho para o chip ASIC girar na Bancada A da Word RAM, enquanto o 1º 68000 do Mega Drive lê a Bancada B já pronta!',
         flowSteps: [
@@ -600,17 +624,25 @@ const ARCHITECTURE_DATA = {
         insight:
           'Os dois processadores 68000 não têm um fio direto entre si: toda entrega de gráficos do Mega-CD para o Mega Drive acontece passando por esses 4 componentes na ponte Word RAM.',
         speechSimple:
-          '"Vejam os 4 blocos brilhando neste passo: primeiro, a Sub-CPU de 12.5 MHz manda a imagem para o chip ASIC; segundo, o ASIC gira e dá zoom na imagem; terceiro, a memória Word RAM gira a bancada de 128 KB (Bank Swap); e quarto, o processador do Mega Drive já recebe o desenho pronto do outro lado sem fila!"',
+          '"Vejam os 4 blocos conectados em sequência: 1º, a Sub-CPU manda a imagem para o chip ASIC; 2º, o ASIC gira a imagem e fatia em blocos; 3º, a memória Word RAM gira a bancada (Bank Swap); e 4º, a linha rosa leva o desenho pronto direto para o processador do Mega Drive!"',
         speechTech:
-          '"Neste passo operam 4 componentes em cadeia: a Sub-CPU 68000 comanda o ASIC Gráfico, que aplica transformações afins (rotação/escala) e converte bitmaps em tiles 8×8 dentro da Word RAM (256 KB). Ao concluir o quadro, ocorre o Bank Swap (modo 1M/1M) entregando o banco pronto para o Main-CPU 68000."',
+          '"Neste passo operam 4 componentes em cadeia: a Sub-CPU 68000 comanda o ASIC Gráfico, que aplica transformações afins (rotação/escala) e converte bitmaps em tiles 8×8 dentro da Word RAM (256 KB). Ao concluir o quadro, ocorre o Bank Swap entregando o banco pronto para o Main-CPU 68000."',
         activeNodes: ['mcd-subcpu', 'mcd-asic', 'mcd-wordram', 'mcd-maincpu'],
-        activeBuses: ['bus-mcd-sub-word', 'bus-mcd-main-word'],
+        activeBuses: ['bus-mcd-sub-asic', 'bus-mcd-asic-word', 'bus-mcd-main-word'],
         packets: [
           {
-            pathId: 'path-mcd-sub-word',
+            pathId: 'path-mcd-sub-asic',
+            color: '#a855f7',
+            type: 'code',
+            label: '1. Comando Sub-CPU',
+            badgeX: 580,
+            badgeY: 112
+          },
+          {
+            pathId: 'path-mcd-asic-word',
             color: '#a855f7',
             type: 'image',
-            label: 'Rotação & Escala',
+            label: '2. Rotação & Escala',
             badgeX: 461,
             badgeY: 220
           },
@@ -618,9 +650,9 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-mcd-main-word',
             color: '#ec4899',
             type: 'image',
-            label: 'Imagem Pronta (Swap)',
-            badgeX: 330,
-            badgeY: 210
+            label: '3. Bank Swap Pronto',
+            badgeX: 335,
+            badgeY: 312
           }
         ]
       },
@@ -629,7 +661,7 @@ const ARCHITECTURE_DATA = {
         shortTitle: 'VDP & 3 Memórias',
         title: 'Transferência para a TV: Word RAM → Main-CPU → VDP (VRAM, CRAM e VSRAM)',
         summary:
-          'Os gráficos prontos saem da Word RAM, são comandados pelo 68000 principal e puxados pelo DMA do VDP para abastecer suas três memórias internas de vídeo (VRAM, CRAM e VSRAM).',
+          'Os gráficos prontos saem da Word RAM, passam pelo barramento do 68000 principal e descem pelo DMA do VDP para abastecer suas três memórias internas de vídeo (VRAM, CRAM e VSRAM).',
         simpleAnalogy:
           'A imagem sai da bancada giratória (Word RAM), passa pelo comando do chefe (68000) e entra nas 3 gavetas do chip de vídeo (VDP): uma para os desenhos (64 KB), uma para 64 cores (CRAM) e outra para rolar a tela (VSRAM).',
         flowSteps: [
@@ -661,7 +693,7 @@ const ARCHITECTURE_DATA = {
         insight:
           'Seg. Copetti: Enquanto o DMA do VDP copia gráficos para a VRAM, o 68000 fica pausado. E com os modos Sombra/Brilho (Shadow & Highlight), as 64 cores da CRAM chegavam a 183 tons!',
         speechSimple:
-          '"Aqui vemos o caminho final da imagem: ela sai da bancada Word RAM, o processador 68000 aciona o motor de cópia rápida (DMA) e o chip de vídeo VDP guarda tudo nas suas 3 memórias internas — 64 KB para os cenários e 80 personagens, 128 Bytes para as 64 cores e 80 Bytes para a rolagem da tela!"',
+          '"Aqui vemos o caminho final da imagem: ela sai da Word RAM pela linha rosa até o 68000, e desce pela linha azul (DMA) direto até o chip de vídeo VDP, preenchendo suas 3 memórias internas: 64 KB de desenhos, 64 cores e rolagem da tela!"',
         speechTech:
           '"O fluxo gráfico final envolve a Word RAM, o 68000 principal e as 3 memórias internas do VDP detalhadas por Copetti: o DMA dedicado do VDP pausa o 68000 para copiar os tiles da Word RAM para os 64 KB de VRAM, combinando-os com as 4 paletas da CRAM (128 B) e o scroll vertical da VSRAM (80 B)."',
         activeNodes: ['mcd-wordram', 'mcd-maincpu', 'mcd-vdp'],
@@ -671,26 +703,26 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-mcd-main-word',
             color: '#ec4899',
             type: 'image',
-            label: 'Lê Tiles Word RAM',
-            badgeX: 330,
-            badgeY: 210
+            label: '1. Lê Tiles Word RAM',
+            badgeX: 335,
+            badgeY: 312
           },
           {
             pathId: 'path-mcd-vdp',
             color: '#38bdf8',
             type: 'image',
-            label: 'DMA -> 64KB Vídeo',
-            badgeX: 165,
-            badgeY: 315
+            label: '2. DMA -> 64KB Vídeo',
+            badgeX: 255,
+            badgeY: 312
           }
         ]
       },
       {
         step: 4,
         shortTitle: 'Som FM + PCM',
-        title: 'Orquestra Completa: Os 4 Componentes de Áudio (Z80 + Árbitro + Ricoh PCM + CD)',
+        title: 'Orquestra Completa: Os 4 Componentes de Áudio (Árbitro → Z80 + CD → Ricoh PCM)',
         summary:
-          'Neste passo 4 blocos trabalham juntos: o Árbitro libera os comandos para o Z80 tocar o sintetizador FM (YM2612), enquanto no Mega-CD o chip Ricoh toca 8 canais PCM e o leitor toca música de CD.',
+          'Neste passo 4 blocos trabalham juntos: o Árbitro libera os comandos para o Z80 tocar o sintetizador FM (YM2612), enquanto no Mega-CD o leitor envia o som do CD e o chip Ricoh toca 8 canais PCM.',
         simpleAnalogy:
           'Os 4 blocos fazem uma orquestra completa: o Árbitro entrega os pedidos para o maestro Z80 tocar o som clássico do Mega Drive, o leitor toca a música do CD e o chip Ricoh PCM toca instrumentos gravados (e até cobre a pausa do laser em Sonic CD!).',
         flowSteps: [
@@ -707,42 +739,42 @@ const ARCHITECTURE_DATA = {
             text: 'Rege de forma autônoma os 6 canais FM do Yamaha YM2612 e os 4 canais PSG no Mega Drive.'
           },
           {
-            nodeId: 'mcd-pcm',
-            tag: '3. Áudio Mega-CD: Ricoh RF5C164 (8ch PCM)',
-            iconType: 'audio',
-            text: 'Reproduz 8 canais de samples digitais (bateria, guitarra, vozes) usando 64 KB de Wave RAM própria.'
+            nodeId: 'mcd-drive',
+            tag: '3. CD-ROM (1x — Música CD-DA)',
+            iconType: 'disc',
+            text: 'Envia a trilha sonora de CD (e nos loops, o chip PCM cobria o meio segundo que o laser 1x levava para voltar!).'
           },
           {
-            nodeId: 'mcd-drive',
-            tag: '4. CD-ROM (1x — Música CD-DA)',
-            iconType: 'disc',
-            text: 'Toca a trilha sonora de CD (e nos loops, o chip PCM cobria o meio segundo que o laser 1x levava para voltar!).'
+            nodeId: 'mcd-pcm',
+            tag: '4. Áudio Mega-CD: Ricoh RF5C164 (8ch PCM)',
+            iconType: 'audio',
+            text: 'Reproduz 8 canais de samples digitais (bateria, guitarra, vozes) usando 64 KB de Wave RAM própria.'
           }
         ],
         insight:
           'Seg. Copetti (Bônus Som do Mega-CD): Como o leitor 1x demorava para reposicionar o laser ao repetir uma música do CD, Sonic CD usava o chip Ricoh PCM para tocar um preenchimento e esconder o silêncio!',
         speechSimple:
-          '"Olhem os 4 componentes de som funcionando ao mesmo tempo: na esquerda, o Árbitro passa os comandos para o chip Z80 tocar o famoso som FM do Mega Drive; na direita, o leitor toca a música de estúdio do CD junto com os 8 canais digitais do chip Ricoh — que em Sonic CD era usado até para cobrir o tempinho que o laser levava para voltar ao início da música!"',
+          '"Olhem os 4 componentes de som funcionando ao mesmo tempo: na esquerda, a linha amarela leva os comandos do Árbitro até o chip Z80 tocar o som FM do Mega Drive; na direita, a linha verde desce do leitor de CD até o chip Ricoh de 8 canais digitais!"',
         speechTech:
-          '"Os 4 blocos ativos somam 18 canais mais CD-DA: na base, o Árbitro de Barramento sincroniza o acesso ao Z80 (8 KB RAM), que comanda o YM2612 (6ch FM) e o SN76489 (4ch PSG); no Mega-CD, o Ricoh RF5C164 adiciona 8 canais PCM (64 KB) mixados ao streaming CD-DA vindo do leitor 1x."',
-        activeNodes: ['mcd-z80', 'mcd-arbiter', 'mcd-pcm', 'mcd-drive'],
+          '"Os 4 blocos ativos somam 18 canais mais CD-DA: na base, o Árbitro de Barramento sincroniza o envio ao Z80 (8 KB RAM), que comanda o YM2612 (6ch FM) e o SN76489 (4ch PSG); no Mega-CD, o Ricoh RF5C164 adiciona 8 canais PCM (64 KB) mixados ao streaming CD-DA vindo do leitor 1x."',
+        activeNodes: ['mcd-arbiter', 'mcd-z80', 'mcd-drive', 'mcd-pcm'],
         activeBuses: ['bus-mcd-z80', 'bus-mcd-pcm'],
         packets: [
           {
             pathId: 'path-mcd-z80',
             color: '#f59e0b',
             type: 'audio',
-            label: 'Z80 -> Som FM',
-            badgeX: 165,
-            badgeY: 440
+            label: 'Árbitro -> Z80 FM',
+            badgeX: 115,
+            badgeY: 428
           },
           {
             pathId: 'path-mcd-pcm',
             color: '#10b981',
             type: 'audio',
-            label: '8ch PCM + Música CD',
+            label: 'CD-DA + 8ch PCM',
             badgeX: 885,
-            badgeY: 350
+            badgeY: 344
           }
         ]
       }
@@ -969,7 +1001,7 @@ const ARCHITECTURE_DATA = {
       {
         step: 1,
         shortTitle: 'CD 2x & Sub Bus',
-        title: 'Subsistema de CD-ROM (2x — 300 KB/s) e a Ponte BIU',
+        title: 'Subsistema de CD-ROM (2x — 300 KB/s) → Ponte BIU',
         summary:
           'O leitor de CD do PS1 possui um microcomputador próprio que confere a trava do disco preto, lê os dados no dobro da velocidade (300 KB/s) para seu buffer de 32 KB e entrega à ponte BIU no Sub Bus.',
         simpleAnalogy:
@@ -1009,7 +1041,7 @@ const ARCHITECTURE_DATA = {
             type: 'disc',
             label: '300 KB/s (CD 2x)',
             badgeX: 605,
-            badgeY: 400
+            badgeY: 398
           }
         ]
       },
@@ -1063,10 +1095,18 @@ const ARCHITECTURE_DATA = {
         activeBuses: ['bus-ps1-cd-sub', 'bus-ps1-biu-dma', 'bus-ps1-dma-ram'],
         packets: [
           {
+            pathId: 'path-ps1-cd-sub',
+            color: '#f97316',
+            type: 'disc',
+            label: '1. Setores CD 2x',
+            badgeX: 605,
+            badgeY: 398
+          },
+          {
             pathId: 'path-ps1-biu-dma',
             color: '#f59e0b',
             type: 'code',
-            label: 'Pedido DMA Ch3',
+            label: '2. Pedido DMA Ch3',
             badgeX: 405,
             badgeY: 350
           },
@@ -1074,16 +1114,16 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-ps1-dma-ram',
             color: '#10b981',
             type: 'code',
-            label: '132 MB/s -> 2MB RAM',
+            label: '3. 132 MB/s -> RAM',
             badgeX: 500,
-            badgeY: 225
+            badgeY: 220
           }
         ]
       },
       {
         step: 3,
         shortTitle: 'Vídeo FMV (MDEC)',
-        title: 'Cinema em Tela Cheia: EDO RAM ↔ DMA (Canais 0 e 1) ↔ Chip MDEC',
+        title: 'Cinema em Tela Cheia: EDO RAM → DMA (Canais 0 e 1) → Chip MDEC',
         summary:
           'Para exibir aberturas e filmes (FMV), os quadros comprimidos saem dos 2 MB de RAM, vão pelo DMA Canal 0 até o descompressor MDEC dentro do chip principal e voltam prontos em 16 milhões de cores pelo DMA Canal 1.',
         simpleAnalogy:
@@ -1121,15 +1161,23 @@ const ARCHITECTURE_DATA = {
         speechTech:
           '"Na reprodução de vídeo FMV atuam a EDO DRAM, os canais 0 e 1 do DMA e o MDEC no SoC: o DMA Ch0 lê os frames comprimidos na RAM, o MDEC decodifica 9.000 macroblocos/s em 24 bits sem usar a CPU MIPS e o DMA Ch1 devolve os quadros a 30 fps."',
         activeNodes: ['ps1-ram', 'ps1-dma', 'ps1-cpu'],
-        activeBuses: ['bus-ps1-dma-ram', 'bus-ps1-dma-cpu'],
+        activeBuses: ['bus-ps1-ram-dma', 'bus-ps1-dma-cpu'],
         packets: [
+          {
+            pathId: 'path-ps1-ram-dma',
+            color: '#10b981',
+            type: 'video',
+            label: '1. Vídeo Compactado',
+            badgeX: 500,
+            badgeY: 220
+          },
           {
             pathId: 'path-ps1-dma-cpu',
             color: '#ec4899',
             type: 'video',
-            label: 'Vídeo FMV 30fps',
+            label: '2. MDEC FMV 30fps',
             badgeX: 205,
-            badgeY: 255
+            badgeY: 261
           }
         ]
       },
@@ -1180,23 +1228,31 @@ const ARCHITECTURE_DATA = {
         speechTech:
           '"Neste último passo atuam 5 subsistemas: (1) o GTE calcula as matrizes 3D em ponto fixo; (2) a EDO DRAM armazena a Ordering Table ordenada por profundidade Z; (3) os canais 2 e 4 do DMA transferem os comandos gráficos e sonoros; (4) a GPU rasteriza os polígonos e texturas CLUT no seu 1 MB de VRAM (1024×512); e (5) a SPU processa 24 canais ADPCM nos seus 512 KB de Sound RAM."',
         activeNodes: ['ps1-cpu', 'ps1-ram', 'ps1-dma', 'ps1-gpu', 'ps1-spu'],
-        activeBuses: ['bus-ps1-dma-cpu', 'bus-ps1-dma-ram', 'bus-ps1-dma-gpu', 'bus-ps1-dma-spu'],
+        activeBuses: ['bus-ps1-cpu-dma', 'bus-ps1-ram-dma', 'bus-ps1-dma-gpu', 'bus-ps1-dma-spu'],
         packets: [
+          {
+            pathId: 'path-ps1-ram-dma',
+            color: '#10b981',
+            type: 'image',
+            label: '1. Ordering Table',
+            badgeX: 500,
+            badgeY: 220
+          },
           {
             pathId: 'path-ps1-dma-gpu',
             color: '#38bdf8',
             type: 'image',
-            label: 'Imagem 3D + Texturas',
+            label: '2. DMA Ch2 -> GPU 3D',
             badgeX: 800,
-            badgeY: 235
+            badgeY: 232
           },
           {
             pathId: 'path-ps1-dma-spu',
             color: '#a855f7',
             type: 'audio',
-            label: 'Som SPU (24 Vozes)',
-            badgeX: 305,
-            badgeY: 400
+            label: '3. DMA Ch4 -> SPU',
+            badgeX: 315,
+            badgeY: 398
           }
         ]
       }
@@ -1554,46 +1610,47 @@ export default function ArquiteturaConsolesCDROM() {
     image.src = blobURL;
   };
 
-  // Renderizador de Linha de Barramento com Fluxo Animado
-  const renderBusLine = (busId, x1, y1, x2, y2, baseColor, width = 4.5) => {
+  // ============================================================================
+  // RENDERIZADOR UNIFICADO DE BARRAMENTO POR CAMINHO COMPLETO (<path>)
+  // Garante que 100% do caminho fique colorido, com seta direcional e fluxo exato!
+  // ============================================================================
+  const renderBusPath = (busId, d, baseColor, width = 4.5) => {
     const active = isBusActive(busId);
     return (
-      <g key={`${busId}-${x1}-${y1}-${x2}-${y2}`}>
-        {/* Sombra brilhante quando ativo */}
+      <g key={`${busId}-${d}`}>
+        {/* Brilho externo em todo o percurso quando ativo */}
         {active && (
-          <line
-            x1={x1}
-            y1={y1}
-            x2={x2}
-            y2={y2}
+          <path
+            d={d}
+            fill="none"
             stroke="#facc15"
             strokeWidth={width + 6}
             strokeLinecap="round"
-            opacity="0.22"
+            strokeLinejoin="round"
+            opacity="0.24"
           />
         )}
-        {/* Trilha Base */}
-        <line
-          x1={x1}
-          y1={y1}
-          x2={x2}
-          y2={y2}
+        {/* Trilha Base colorida de ponta a ponta */}
+        <path
+          d={d}
+          fill="none"
           stroke={active ? baseColor : lightMode ? '#cbd5e1' : '#334155'}
           strokeWidth={width}
           strokeLinecap="round"
-          opacity={active ? 0.95 : 0.45}
+          strokeLinejoin="round"
+          opacity={active ? 0.98 : 0.42}
+          markerEnd={active ? 'url(#flowArrowActive)' : undefined}
         />
-        {/* Corrente de Dados Animada */}
+        {/* Corrente Animada seguindo exatamente a direção do fluxo (Início -> Fim) */}
         {active && (
-          <line
-            x1={x1}
-            y1={y1}
-            x2={x2}
-            y2={y2}
+          <path
+            d={d}
+            fill="none"
             stroke="#fef08a"
             strokeWidth={Math.max(2.5, width - 1.5)}
             strokeDasharray="8 6"
             strokeLinecap="round"
+            strokeLinejoin="round"
             className="animate-bus-flow"
           />
         )}
@@ -1603,11 +1660,9 @@ export default function ArquiteturaConsolesCDROM() {
 
   // ============================================================================
   // ÍCONES VETORIAIS MINIATURA PARA OS PACOTES ANIMADOS (IMAGEM, VÍDEO, SOM, CD, DADOS)
-  // Desenhados centrados em (0,0) para viajar suavemente pelos barramentos sem poluir!
   // ============================================================================
   const renderMiniSvgIcon = (type) => {
     if (type === 'image') {
-      // Símbolo de uma Imagem / Quadro (Moldura + Sol + Montanha)
       return (
         <g stroke="#ffffff" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <rect x="-5.5" y="-4.5" width="11" height="9" rx="1.5" fill="#090d1644" />
@@ -1617,7 +1672,6 @@ export default function ArquiteturaConsolesCDROM() {
       );
     }
     if (type === 'video') {
-      // Símbolo de Filme / Vídeo (Tela + Triângulo Play)
       return (
         <g stroke="#ffffff" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <rect x="-5.5" y="-4.5" width="11" height="9" rx="1.5" fill="#090d1644" />
@@ -1626,7 +1680,6 @@ export default function ArquiteturaConsolesCDROM() {
       );
     }
     if (type === 'audio') {
-      // Símbolo de Nota Musical (Áudio / Música)
       return (
         <g stroke="#ffffff" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <path d="M -2 3.5 L -2 -3.5 L 4 -4.5 L 4 2.5" />
@@ -1636,7 +1689,6 @@ export default function ArquiteturaConsolesCDROM() {
       );
     }
     if (type === 'disc') {
-      // Símbolo de Disco CD-ROM
       return (
         <g stroke="#ffffff" strokeWidth="1.4" fill="none">
           <circle cx="0" cy="0" r="5.2" fill="#090d1644" />
@@ -1644,7 +1696,6 @@ export default function ArquiteturaConsolesCDROM() {
         </g>
       );
     }
-    // Padrão ('code'): Símbolo de Dados / Chip / Raio
     return (
       <g fill="#ffffff" stroke="none">
         <polygon points="0.8,-5 -4.2,0.8 -0.5,0.8 -1.2,5 4.2,-0.8 0.5,-0.8" />
@@ -1652,18 +1703,17 @@ export default function ArquiteturaConsolesCDROM() {
     );
   };
 
-  // Renderizador de Bloco de Hardware no SVG (Mais limpo, legível e com foco inteligente)
+  // Renderizador de Bloco de Hardware no SVG
   const renderHardwareNode = (id, x, y, w, h, title, spec, subSpec, category) => {
     const style = CATEGORY_STYLES[category] || CATEGORY_STYLES.cpu;
     const active = isNodeActive(id);
     const isSelected = selectedNodeId === id;
     const isHovered = hoveredNodeId === id;
 
-    // Foco inteligente: nos passos 1 a 4, blocos inativos ficam suavemente esmaecidos para destacar a animação
     const shouldDim = simStep > 0 && !active && !isSelected && !isHovered;
 
     const fill = lightMode ? style.lightBg : style.bg;
-    const stroke = isSelected
+    const stroke = isSelected || isHovered
       ? '#38bdf8'
       : active
         ? '#facc15'
@@ -1686,8 +1736,8 @@ export default function ArquiteturaConsolesCDROM() {
           transition: 'opacity 0.3s ease, transform 0.2s ease'
         }}
       >
-        {/* Halo pulsante quando ativo na simulação ou selecionado */}
-        {(active || isSelected) && (
+        {/* Halo pulsante quando ativo na simulação, selecionado ou com mouse em cima */}
+        {(active || isSelected || isHovered) && (
           <rect
             x={x - 4}
             y={y - 4}
@@ -1695,7 +1745,7 @@ export default function ArquiteturaConsolesCDROM() {
             height={h + 8}
             rx={14}
             fill="none"
-            stroke={isSelected ? '#38bdf8' : '#facc15'}
+            stroke={isSelected || isHovered ? '#38bdf8' : '#facc15'}
             strokeWidth="2.5"
             strokeDasharray="6 4"
             className="animate-pulse-ring"
@@ -1711,7 +1761,7 @@ export default function ArquiteturaConsolesCDROM() {
           rx={11}
           fill={fill}
           stroke={stroke}
-          strokeWidth={active || isSelected ? '3' : '1.8'}
+          strokeWidth={active || isSelected || isHovered ? '3' : '1.8'}
           filter="url(#dropShadow)"
         />
 
@@ -1769,7 +1819,7 @@ export default function ArquiteturaConsolesCDROM() {
         {subSpec && (
           <text
             x={x + 12}
-            y={y + 62}
+            y={y + 60}
             textAnchor="start"
             fill={subColor}
             fontSize="10.5"
@@ -1783,12 +1833,12 @@ export default function ArquiteturaConsolesCDROM() {
     );
   };
 
-  // Renderizador de Pacotes Animados com Símbolo Visual (Imagem, Vídeo, Áudio, CD, Dados)
+  // Renderizador de Pacotes Animados com Símbolo Visual
   const renderAnimatedPackets = () => {
     const packets = currentSimData?.packets || [];
     return packets.map((pkt, idx) => (
       <g key={`${pkt.pathId}-${idx}`}>
-        {/* Pacote Principal Viajando com o Símbolo Dentro (Ex: Símbolo de Imagem quando for gráfico!) */}
+        {/* Pacote Principal Viajando com o Símbolo Dentro */}
         <g>
           <animateMotion dur="2s" repeatCount="indefinite">
             <mpath href={`#${pkt.pathId}`} />
@@ -2159,7 +2209,7 @@ export default function ArquiteturaConsolesCDROM() {
               </div>
 
               {/* =================================================================
-                  CANVAS SVG INTERATIVO COM ANIMAÇÃO E ÍCONES NOS PACOTES
+                  CANVAS SVG INTERATIVO COM BARRAMENTOS UNIFICADOS E SETAS DE DIREÇÃO
                  ================================================================= */}
               <div
                 className={`rounded-2xl border overflow-hidden shadow-xl relative ${
@@ -2180,6 +2230,18 @@ export default function ArquiteturaConsolesCDROM() {
                       <feGaussianBlur stdDeviation="3.5" result="blur" />
                       <feComposite in="SourceGraphic" in2="blur" operator="over" />
                     </filter>
+                    {/* Seta direcional automática na ponta de todo barramento ativo */}
+                    <marker
+                      id="flowArrowActive"
+                      viewBox="0 0 10 10"
+                      refX="7"
+                      refY="5"
+                      markerWidth="5"
+                      markerHeight="5"
+                      orient="auto-start-reverse"
+                    >
+                      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#facc15" />
+                    </marker>
                     <pattern id="techGrid" width="28" height="28" patternUnits="userSpaceOnUse">
                       <path
                         d="M 28 0 L 0 0 0 28"
@@ -2224,12 +2286,15 @@ export default function ArquiteturaConsolesCDROM() {
                   {activeTab === 'pce' && (
                     <g>
                       <defs>
-                        <path id="path-pce-hucard" d="M 425 135 L 365 135 L 365 165 L 290 165" />
-                        <path id="path-pce-scsi" d="M 735 235 L 665 235" />
-                        <path id="path-pce-exp" d="M 425 235 L 365 235 L 365 165 L 290 165" />
-                        <path id="path-pce-vdc" d="M 172 310 L 172 396" />
-                        <path id="path-pce-vce" d="M 172 462 L 172 475" />
-                        <path id="path-pce-audio" d="M 845 275 L 845 360 L 665 360" />
+                        {/* Todos os caminhos começam na borda de origem e terminam na borda de destino */}
+                        <path id="path-pce-hucard" d="M 425 137 L 365 137 L 365 156 L 290 156" />
+                        <path id="path-pce-scsi" d="M 735 237 L 665 237" />
+                        <path id="path-pce-exp" d="M 425 237 L 365 237 L 365 156 L 290 156" />
+                        <path id="path-pce-cpu-vdc" d="M 290 175 L 318 175 L 318 346 L 290 346" />
+                        <path id="path-pce-vdc" d="M 170 380 L 170 400" />
+                        <path id="path-pce-vce" d="M 170 462 L 170 482" />
+                        <path id="path-pce-audio" d="M 845 276 L 845 351 L 665 351" />
+                        <path id="path-pce-cpu-audio" d="M 290 156 L 365 156 L 365 351 L 425 351" />
                       </defs>
 
                       {/* Molduras dos 3 Módulos Físicos */}
@@ -2278,12 +2343,31 @@ export default function ArquiteturaConsolesCDROM() {
                         LEITOR ÓPTICO CD-ROM² (1988)
                       </text>
 
-                      {/* Barramento Central de Expansão (21-bit MMU / 8-bit Data) */}
-                      {renderBusLine('bus-pce-exp', 365, 95, 365, 515, '#38bdf8', 7)}
+                      {/* Estrutura Base do Barramento Central (21-bit MMU / 8-bit Dados) */}
+                      <line
+                        x1="365"
+                        y1="98"
+                        x2="365"
+                        y2="515"
+                        stroke={lightMode ? '#cbd5e1' : '#334155'}
+                        strokeWidth="6"
+                        strokeLinecap="round"
+                        opacity="0.45"
+                      />
+                      {/* Ligação CPU <-> Work RAM Base */}
+                      <line
+                        x1="170"
+                        y1="197"
+                        x2="170"
+                        y2="220"
+                        stroke={lightMode ? '#cbd5e1' : '#334155'}
+                        strokeWidth="4"
+                        opacity="0.45"
+                      />
                       <text
-                        x="353"
+                        x="352"
                         y="310"
-                        transform="rotate(-90 353 310)"
+                        transform="rotate(-90 352 310)"
                         textAnchor="middle"
                         fill={lightMode ? '#475569' : '#94a3b8'}
                         fontSize="10"
@@ -2292,22 +2376,15 @@ export default function ArquiteturaConsolesCDROM() {
                         BARRAMENTO 21-BIT MMU / 8-BIT DADOS
                       </text>
 
-                      {/* Conexões */}
-                      {renderBusLine('bus-pce-hucard', 365, 135, 425, 135, '#f59e0b', 4.5)}
-                      {renderBusLine('bus-pce-exp', 290, 165, 365, 165, '#38bdf8', 4.5)}
-                      {renderBusLine('bus-pce-exp', 365, 235, 425, 235, '#10b981', 4.5)}
-                      {renderBusLine('bus-pce-scsi', 665, 235, 735, 235, '#f97316', 5)}
-                      {renderBusLine('bus-pce-vdc', 172, 197, 172, 410, '#38bdf8', 4.5)}
-                      {renderBusLine('bus-pce-vce', 172, 462, 172, 495, '#a855f7', 4.5)}
-
-                      <path
-                        d="M 845 275 L 845 360 L 665 360"
-                        fill="none"
-                        stroke={isBusActive('bus-pce-audio') ? '#10b981' : lightMode ? '#cbd5e1' : '#334155'}
-                        strokeWidth="4"
-                        strokeDasharray="7 5"
-                        className={isBusActive('bus-pce-audio') ? 'animate-bus-flow' : ''}
-                      />
+                      {/* Barramentos Completos Direcionados (100% coloridos de ponta a ponta quando ativos) */}
+                      {renderBusPath('bus-pce-hucard', 'M 425 137 L 365 137 L 365 156 L 290 156', '#f59e0b', 5)}
+                      {renderBusPath('bus-pce-scsi', 'M 735 237 L 665 237', '#f97316', 5)}
+                      {renderBusPath('bus-pce-exp', 'M 425 237 L 365 237 L 365 156 L 290 156', '#38bdf8', 5)}
+                      {renderBusPath('bus-pce-cpu-vdc', 'M 290 175 L 318 175 L 318 346 L 290 346', '#38bdf8', 4.5)}
+                      {renderBusPath('bus-pce-vdc', 'M 170 380 L 170 400', '#38bdf8', 5)}
+                      {renderBusPath('bus-pce-vce', 'M 170 462 L 170 482', '#a855f7', 5)}
+                      {renderBusPath('bus-pce-audio', 'M 845 276 L 845 351 L 665 351', '#10b981', 4.5)}
+                      {renderBusPath('bus-pce-cpu-audio', 'M 290 156 L 365 156 L 365 351 L 425 351', '#ec4899', 4.5)}
 
                       {/* Blocos PC Engine Base */}
                       {renderHardwareNode(
@@ -2337,7 +2414,7 @@ export default function ArquiteturaConsolesCDROM() {
                         50,
                         310,
                         240,
-                        72,
+                        70,
                         'VDC: HuC6270 (Vídeo)',
                         'Bus VRAM 16-bit + SATB DMA',
                         'Tiles 8×8 e 64 Sprites 16×16',
@@ -2346,9 +2423,9 @@ export default function ArquiteturaConsolesCDROM() {
                       {renderHardwareNode(
                         'pce-vram',
                         50,
-                        396,
+                        400,
                         240,
-                        66,
+                        62,
                         'VRAM Dedicada',
                         '64 KB (Words de 16-bit)',
                         'Gráficos Planar 4-bit (CH0-CH3)',
@@ -2357,9 +2434,9 @@ export default function ArquiteturaConsolesCDROM() {
                       {renderHardwareNode(
                         'pce-vce',
                         50,
-                        475,
+                        482,
                         240,
-                        62,
+                        60,
                         'VCE: HuC6260 (Cores)',
                         '32 Paletas × 16 Cores (RGB 9b)',
                         'Até 482 cores na tela -> Saída TV',
@@ -2424,13 +2501,14 @@ export default function ArquiteturaConsolesCDROM() {
                   {activeTab === 'megacd' && (
                     <g>
                       <defs>
+                        {/* Todos os caminhos <path> são idênticos às trilhas de barramento! */}
                         <path id="path-mcd-cd" d="M 885 215 L 885 150 L 795 150" />
                         <path id="path-mcd-prg" d="M 700 187 L 700 245" />
-                        {/* Caminho limpo Sub-CPU -> ASIC -> Word RAM sem passar por cima do texto do ASIC */}
-                        <path id="path-mcd-sub-word" d="M 605 150 L 550 150 M 461 194 L 461 245" />
-                        <path id="path-mcd-main-word" d="M 372 285 L 305 150" />
-                        <path id="path-mcd-vdp" d="M 165 297 L 165 325" />
-                        <path id="path-mcd-z80" d="M 165 297 L 165 440" />
+                        <path id="path-mcd-sub-asic" d="M 605 150 L 550 150" />
+                        <path id="path-mcd-asic-word" d="M 461 194 L 461 245" />
+                        <path id="path-mcd-main-word" d="M 372 285 L 335 285 L 335 150 L 305 150" />
+                        <path id="path-mcd-vdp" d="M 305 170 L 318 170 L 318 368 L 305 368" />
+                        <path id="path-mcd-z80" d="M 40 256 L 28 256 L 28 481 L 40 481" />
                         <path id="path-mcd-pcm" d="M 885 303 L 885 385" />
                       </defs>
 
@@ -2479,15 +2557,26 @@ export default function ArquiteturaConsolesCDROM() {
                         EXPANSÃO SEGA MEGA-CD (1991 — SUB-CPU 12.5 MHz)
                       </text>
 
-                      {/* Barramentos */}
-                      {renderBusLine('bus-mcd-main-word', 305, 150, 372, 285, '#ec4899', 4.5)}
-                      {renderBusLine('bus-mcd-sub-word', 550, 150, 605, 150, '#a855f7', 4.5)}
-                      {renderBusLine('bus-mcd-sub-word', 461, 194, 461, 245, '#a855f7', 4.5)}
-                      {renderBusLine('bus-mcd-vdp', 165, 187, 165, 325, '#38bdf8', 4.5)}
-                      {renderBusLine('bus-mcd-z80', 165, 297, 165, 440, '#f59e0b', 4)}
-                      {renderBusLine('bus-mcd-prg', 700, 187, 700, 245, '#10b981', 4.5)}
-                      {renderBusLine('bus-mcd-cd', 795, 150, 885, 215, '#f97316', 4.5)}
-                      {renderBusLine('bus-mcd-pcm', 885, 303, 885, 385, '#10b981', 4)}
+                      {/* Ligação estrutural Main-CPU <-> Árbitro */}
+                      <line
+                        x1="165"
+                        y1="187"
+                        x2="165"
+                        y2="215"
+                        stroke={lightMode ? '#cbd5e1' : '#334155'}
+                        strokeWidth="4.5"
+                        opacity="0.45"
+                      />
+
+                      {/* Barramentos Completos Direcionados (Mesmo formato e direção dos pacotes!) */}
+                      {renderBusPath('bus-mcd-cd', 'M 885 215 L 885 150 L 795 150', '#f97316', 5)}
+                      {renderBusPath('bus-mcd-prg', 'M 700 187 L 700 245', '#10b981', 5)}
+                      {renderBusPath('bus-mcd-sub-asic', 'M 605 150 L 550 150', '#a855f7', 5)}
+                      {renderBusPath('bus-mcd-asic-word', 'M 461 194 L 461 245', '#a855f7', 5)}
+                      {renderBusPath('bus-mcd-main-word', 'M 372 285 L 335 285 L 335 150 L 305 150', '#ec4899', 5)}
+                      {renderBusPath('bus-mcd-vdp', 'M 305 170 L 318 170 L 318 368 L 305 368', '#38bdf8', 5)}
+                      {renderBusPath('bus-mcd-z80', 'M 40 256 L 28 256 L 28 481 L 40 481', '#f59e0b', 4.5)}
+                      {renderBusPath('bus-mcd-pcm', 'M 885 303 L 885 385', '#10b981', 5)}
 
                       {/* Blocos Mega Drive Base */}
                       {renderHardwareNode(
@@ -2618,9 +2707,11 @@ export default function ArquiteturaConsolesCDROM() {
                         <path id="path-ps1-cd-sub" d="M 650 420 L 560 420" />
                         <path id="path-ps1-biu-dma" d="M 455 375 L 455 326" />
                         <path id="path-ps1-dma-ram" d="M 500 276 L 500 164" />
+                        <path id="path-ps1-ram-dma" d="M 500 164 L 500 276" />
                         <path id="path-ps1-dma-cpu" d="M 200 276 L 200 247" />
+                        <path id="path-ps1-cpu-dma" d="M 200 247 L 200 276" />
                         <path id="path-ps1-dma-gpu" d="M 800 276 L 800 187" />
-                        <path id="path-ps1-dma-spu" d="M 355 420 L 275 420" />
+                        <path id="path-ps1-dma-spu" d="M 455 326 L 455 375 M 355 420 L 275 420" />
                       </defs>
 
                       {/* BLOCO 1: SoC SONY CXD8530BQ */}
@@ -2640,6 +2731,20 @@ export default function ArquiteturaConsolesCDROM() {
                           transition: 'opacity 0.3s ease'
                         }}
                       >
+                        {(isNodeActive('ps1-cpu') || selectedNodeId === 'ps1-cpu' || hoveredNodeId === 'ps1-cpu') && (
+                          <rect
+                            x="26"
+                            y="58"
+                            width="343"
+                            height="193"
+                            rx="16"
+                            fill="none"
+                            stroke={selectedNodeId === 'ps1-cpu' || hoveredNodeId === 'ps1-cpu' ? '#38bdf8' : '#facc15'}
+                            strokeWidth="2.5"
+                            strokeDasharray="6 4"
+                            className="animate-pulse-ring"
+                          />
+                        )}
                         <rect
                           x="30"
                           y="62"
@@ -2647,8 +2752,14 @@ export default function ArquiteturaConsolesCDROM() {
                           height="185"
                           rx="14"
                           fill={lightMode ? '#eff6ff' : '#0d182e'}
-                          stroke={isNodeActive('ps1-cpu') ? '#facc15' : '#3b82f6'}
-                          strokeWidth={isNodeActive('ps1-cpu') ? '3' : '2'}
+                          stroke={
+                            selectedNodeId === 'ps1-cpu' || hoveredNodeId === 'ps1-cpu'
+                              ? '#38bdf8'
+                              : isNodeActive('ps1-cpu')
+                                ? '#facc15'
+                                : '#3b82f6'
+                          }
+                          strokeWidth={isNodeActive('ps1-cpu') || hoveredNodeId === 'ps1-cpu' ? '3' : '2'}
                           filter="url(#dropShadow)"
                         />
                         <text x="45" y="84" fill="#60a5fa" fontSize="11.5" fontWeight="800">
@@ -2726,17 +2837,55 @@ export default function ArquiteturaConsolesCDROM() {
                         'gpu'
                       )}
 
-                      {/* Linhas Conectadas ao Main Bus */}
-                      {renderBusLine('bus-ps1-dma-cpu', 200, 247, 200, 276, '#ec4899', 5)}
-                      {renderBusLine('bus-ps1-dma-ram', 500, 164, 500, 276, '#10b981', 5)}
-                      {renderBusLine('bus-ps1-dma-gpu', 800, 187, 800, 276, '#38bdf8', 5)}
-                      {renderBusLine('bus-ps1-biu-dma', 455, 326, 455, 375, '#f59e0b', 5)}
+                      {/* Trilhas Estruturais Base do PS1 (Cinza quando inativas) */}
+                      <line x1="200" y1="247" x2="200" y2="276" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="5" opacity="0.4" />
+                      <line x1="500" y1="164" x2="500" y2="276" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="5" opacity="0.4" />
+                      <line x1="800" y1="187" x2="800" y2="276" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="5" opacity="0.4" />
+                      <line x1="455" y1="326" x2="455" y2="375" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="5" opacity="0.4" />
+                      <line x1="275" y1="420" x2="355" y2="420" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="4.5" opacity="0.4" />
+                      <line x1="560" y1="420" x2="650" y2="420" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="4.5" opacity="0.4" />
 
-                      {/* MAIN BUS (32-BIT @ 132 MB/s + DMA CONTROLLER) */}
+                      {/* Barramentos Ativos com Direção Exata e Setas */}
+                      {renderBusPath('bus-ps1-cd-sub', 'M 650 420 L 560 420', '#f97316', 5)}
+                      {renderBusPath('bus-ps1-biu-dma', 'M 455 375 L 455 326', '#f59e0b', 5)}
+                      {renderBusPath('bus-ps1-dma-ram', 'M 500 276 L 500 164', '#10b981', 5)}
+                      {renderBusPath('bus-ps1-ram-dma', 'M 500 164 L 500 276', '#10b981', 5)}
+                      {renderBusPath('bus-ps1-dma-cpu', 'M 200 276 L 200 247', '#ec4899', 5)}
+                      {renderBusPath('bus-ps1-cpu-dma', 'M 200 247 L 200 276', '#38bdf8', 5)}
+                      {renderBusPath('bus-ps1-dma-gpu', 'M 800 276 L 800 187', '#38bdf8', 5)}
+                      {renderBusPath('bus-ps1-dma-spu', 'M 455 326 L 455 375 M 355 420 L 275 420', '#a855f7', 5)}
+
+                      {/* MAIN BUS (32-BIT @ 132 MB/s + DMA CONTROLLER) COM HOVER E SELEÇÃO SINCRONIZADOS */}
                       <g
                         onClick={() => setSelectedNodeId('ps1-dma' === selectedNodeId ? null : 'ps1-dma')}
-                        style={{ cursor: 'pointer' }}
+                        onMouseEnter={() => setHoveredNodeId('ps1-dma')}
+                        onMouseLeave={() => setHoveredNodeId(null)}
+                        style={{
+                          cursor: 'pointer',
+                          opacity:
+                            simStep > 0 &&
+                            !isNodeActive('ps1-dma') &&
+                            selectedNodeId !== 'ps1-dma' &&
+                            hoveredNodeId !== 'ps1-dma'
+                              ? 0.45
+                              : 1,
+                          transition: 'opacity 0.3s ease'
+                        }}
                       >
+                        {(isNodeActive('ps1-dma') || selectedNodeId === 'ps1-dma' || hoveredNodeId === 'ps1-dma') && (
+                          <rect
+                            x="26"
+                            y="272"
+                            width="948"
+                            height="58"
+                            rx="14"
+                            fill="none"
+                            stroke={selectedNodeId === 'ps1-dma' || hoveredNodeId === 'ps1-dma' ? '#38bdf8' : '#facc15'}
+                            strokeWidth="2.5"
+                            strokeDasharray="6 4"
+                            className="animate-pulse-ring"
+                          />
+                        )}
                         <rect
                           x="30"
                           y="276"
@@ -2745,11 +2894,11 @@ export default function ArquiteturaConsolesCDROM() {
                           rx="11"
                           fill={lightMode ? '#fefce8' : '#182235'}
                           stroke={
-                            isBusActive('bus-ps1-dma-ram') ||
-                            isBusActive('bus-ps1-dma-gpu') ||
-                            isBusActive('bus-ps1-dma-cpu')
-                              ? '#facc15'
-                              : '#f59e0b'
+                            selectedNodeId === 'ps1-dma' || hoveredNodeId === 'ps1-dma'
+                              ? '#38bdf8'
+                              : isNodeActive('ps1-dma')
+                                ? '#facc15'
+                                : '#f59e0b'
                           }
                           strokeWidth="3"
                           filter="url(#dropShadow)"
@@ -2788,10 +2937,6 @@ export default function ArquiteturaConsolesCDROM() {
                         'BIOS (512 KB) + Portas Controles',
                         'storage'
                       )}
-
-                      {/* Conexões do Sub Bus */}
-                      {renderBusLine('bus-ps1-dma-spu', 275, 420, 355, 420, '#a855f7', 4.5)}
-                      {renderBusLine('bus-ps1-cd-sub', 560, 420, 650, 420, '#f97316', 4.5)}
 
                       {/* BLOCO SPU */}
                       {renderHardwareNode(
@@ -2844,7 +2989,7 @@ export default function ArquiteturaConsolesCDROM() {
                     fontWeight="600"
                     fontFamily="Inter, sans-serif"
                   >
-                    Clique em qualquer bloco do diagrama ou nas instruções ao lado para inspecionar o componente
+                    Passe o mouse sobre qualquer bloco (ou sobre a barra de DMA) para destacar sua instrução ao lado
                   </text>
                 </svg>
               </div>
@@ -2956,31 +3101,43 @@ export default function ArquiteturaConsolesCDROM() {
                         <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-400">
                           Instruções de Todos os Componentes ({currentSimData.flowSteps.length} Etapas)
                         </span>
-                        <span className="text-[10px] text-slate-400">Clique p/ abrir o chip</span>
+                        <span className="text-[10px] text-slate-400">Passe o mouse ou clique</span>
                       </div>
-                      {currentSimData.flowSteps.map((item, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => item.nodeId && setSelectedNodeId(item.nodeId)}
-                          onMouseEnter={() => item.nodeId && setHoveredNodeId(item.nodeId)}
-                          onMouseLeave={() => setHoveredNodeId(null)}
-                          className={`p-2.5 rounded-xl border flex items-start gap-2.5 cursor-pointer transition ${
-                            hoveredNodeId === item.nodeId && item.nodeId
-                              ? 'border-amber-400 bg-amber-500/10'
-                              : lightMode
-                                ? 'bg-slate-50 hover:bg-blue-50/60 border-slate-200'
-                                : 'bg-slate-900/70 hover:bg-slate-800/90 border-slate-800/90'
-                          }`}
-                        >
-                          {renderStepTypeBadge(item.iconType, idx)}
-                          <div className="text-xs leading-relaxed flex-1">
-                            <div className="font-extrabold text-blue-400">{item.tag}</div>
-                            <div className={lightMode ? 'text-slate-700 mt-0.5' : 'text-slate-300 mt-0.5'}>
-                              {item.text}
+                      {currentSimData.flowSteps.map((item, idx) => {
+                        const isItemHovered = Boolean(item.nodeId && hoveredNodeId === item.nodeId);
+                        return (
+                          <div
+                            key={idx}
+                            onClick={() => item.nodeId && setSelectedNodeId(item.nodeId)}
+                            onMouseEnter={() => item.nodeId && setHoveredNodeId(item.nodeId)}
+                            onMouseLeave={() => setHoveredNodeId(null)}
+                            className={`p-2.5 rounded-xl border-2 flex items-start gap-2.5 cursor-pointer transition-all ${
+                              isItemHovered
+                                ? 'border-sky-400 bg-sky-500/15 shadow-md scale-[1.01]'
+                                : lightMode
+                                  ? 'bg-slate-50 hover:bg-blue-50/60 border-slate-200'
+                                  : 'bg-slate-900/70 hover:bg-slate-800/90 border-slate-800/90'
+                            }`}
+                          >
+                            {renderStepTypeBadge(item.iconType, idx)}
+                            <div className="text-xs leading-relaxed flex-1">
+                              <div className="flex items-center justify-between gap-1">
+                                <span className={`font-extrabold ${isItemHovered ? 'text-sky-300' : 'text-blue-400'}`}>
+                                  {item.tag}
+                                </span>
+                                {isItemHovered && (
+                                  <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-sky-500 text-slate-950">
+                                    Em foco
+                                  </span>
+                                )}
+                              </div>
+                              <div className={lightMode ? 'text-slate-700 mt-0.5' : 'text-slate-300 mt-0.5'}>
+                                {item.text}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     {/* CAIXA DE ANALOGIA SIMPLES */}

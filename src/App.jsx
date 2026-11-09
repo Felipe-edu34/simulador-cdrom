@@ -1177,6 +1177,75 @@ const ARCHITECTURE_DATA = {
       },
       {
         step: 3,
+        shortTitle: 'Pipeline 3D (GTE)',
+        title: 'Gráficos 3D (Copetti & PSX-SPX): SoC (CPU + GTE) ↔ DMA (Ch6 OTC & Ch2) ↔ EDO RAM → GPU (1 MB VRAM)',
+        summary:
+          'Com a fase na RAM, os 4 componentes 3D entram em sequência: o DMA Ch6 (OTC) limpa a Ordering Table na EDO RAM, o coprocessador GTE calcula os vértices 3D, a RAM encadeia os polígonos (Z-Sort) e o DMA Ch2 envia tudo para a GPU desenhar no seu 1 MB de VRAM!',
+        simpleAnalogy:
+          'O Engenheiro 3D (GTE) calcula a posição dos objetos, organiza do mais longe ao mais perto numa fila na Mesa (Ordering Table na RAM limpa pelo DMA 6) e o Trem Expresso (DMA 2) leva a fila inteira para a Placa de Vídeo (GPU) desenhar na TV!',
+        flowSteps: [
+          {
+            nodeId: 'ps1-cpu',
+            tag: '1. SoC Sony (CPU + Coprocessador COP2: GTE)',
+            iconType: 'image',
+            text: 'O GTE projeta até 1,5 milhão de vértices 3D/s em ponto fixo (66 MIPS), calculando perspectiva, iluminação e profundidade Z.'
+          },
+          {
+            nodeId: 'ps1-ram',
+            tag: '2. Main RAM: 2 MB EDO (Ordering Table + DMA Ch6 OTC)',
+            iconType: 'code',
+            text: 'O DMA Canal 6 (OTC) limpa a tabela em hardware e a RAM encadeia os polígonos de trás para frente (substituindo o Z-Buffer).'
+          },
+          {
+            nodeId: 'ps1-dma',
+            tag: '3. Main Bus & DMA (Ch6 OTC & Ch2 Linked-List GPU)',
+            iconType: 'image',
+            text: 'O DMA Canal 2 no modo Linked-List caminha sozinho pelos ponteiros da Ordering Table enviando os comandos à GPU sem usar a CPU.'
+          },
+          {
+            nodeId: 'ps1-gpu',
+            tag: '4. Sony GPU + 1 MB VRAM (1024×512 + Video Encoder)',
+            iconType: 'image',
+            text: 'Rasteriza polígonos (360k flat / 180k texturizados/s) com Page-Flipping, CLUT e 2 KB Tex Cache (sem sub-pixel e c/ mapeamento afim).'
+          }
+        ],
+        insight:
+          'Seg. Copetti & PSX-SPX: O PS1 tem um canal de DMA exclusivo (Canal 6 — OTC) cuja única função é limpar a Ordering Table de trás para frente na RAM! Depois, o DMA Canal 2 no modo Linked-List percorre a tabela sozinho alimentando a GPU.',
+        speechSimple:
+          '"Com a fase carregada na memória, começa o jogo em 3D! Vejam as 4 peças em sequência: 1º, o calculador GTE projeta os objetos 3D; 2º, a memória RAM organiza os polígonos do mais distante ao mais próximo numa lista limpa pelo DMA 6; 3º, o DMA Canal 2 percorre essa lista sozinho; e 4º, a placa de vídeo GPU desenha tudo no seu 1 MB de memória VRAM!"',
+        speechTech:
+          '"No pipeline 3D atuam 4 subsistemas segundo Copetti e PSX-SPX: (1) o coprocessador COP2 GTE calcula transformações e iluminação em ponto fixo (66 MIPS); (2) a EDO DRAM armazena a Ordering Table limpa em hardware pelo DMA Ch6 (OTC); (3) o DMA Ch2 em modo Linked-List percorre os nós da tabela; e (4) a GPU rasteriza os polígonos e texturas CLUT no seu 1 MB de VRAM (1024×512)."',
+        activeNodes: ['ps1-cpu', 'ps1-ram', 'ps1-dma', 'ps1-gpu'],
+        activeBuses: ['bus-ps1-cpu-dma', 'bus-ps1-ram-dma', 'bus-ps1-dma-gpu'],
+        packets: [
+          {
+            pathId: 'path-ps1-cpu-dma',
+            color: '#38bdf8',
+            type: 'image',
+            label: '1. Vértices GTE (COP2)',
+            badgeX: 205,
+            badgeY: 261
+          },
+          {
+            pathId: 'path-ps1-ram-dma',
+            color: '#10b981',
+            type: 'image',
+            label: '2. Ordering Table (Ch6/Ch2)',
+            badgeX: 500,
+            badgeY: 220
+          },
+          {
+            pathId: 'path-ps1-dma-gpu',
+            color: '#a855f7',
+            type: 'image',
+            label: '3. Linked-List -> GPU 3D',
+            badgeX: 800,
+            badgeY: 232
+          }
+        ]
+      },
+      {
+        step: 4,
         shortTitle: 'Vídeo FMV (MDEC)',
         title: 'Cinema Completo (Copetti & PSX-SPX): EDO RAM ↔ DMA (Ch0, Ch1 e Ch2) ↔ MDEC → GPU (1 MB VRAM)',
         summary:
@@ -1245,77 +1314,77 @@ const ARCHITECTURE_DATA = {
         ]
       },
       {
-        step: 4,
-        shortTitle: 'Pipeline 3D & SPU',
-        title: 'Gráficos 3D e Áudio Final: Os 5 Componentes Ativos em Paralelo (GTE, OTC/RAM, DMA, GPU e SPU)',
+        step: 5,
+        shortTitle: 'Áudio SPU & CD-XA',
+        title: 'Estúdio de Áudio Completo: EDO RAM → DMA Ch4 → Ponte BIU → SPU (24ch) + CD-ROM (XA Direto)',
         summary:
-          'No passo final 5 componentes trabalham juntos: o DMA Ch6 (OTC) limpa a Ordering Table na RAM, o GTE projeta os vértices 3D, o DMA Ch2 envia a lista encadeada para a GPU desenhar no seu 1 MB de VRAM (Dual-Port/SGRAM) e o DMA Ch4 abastece a SPU de 24 canais!',
+          'No passo final 5 componentes sonoros atuam juntos: os efeitos saem da EDO RAM pelo DMA Ch4, cruzam a Ponte BIU até os 512 KB da SPU (24 canais ADPCM @ 44.1 kHz), enquanto o Subsistema de CD-ROM 2x envia música/vozes XA-ADPCM direto para a SPU!',
         simpleAnalogy:
-          'É o gran finale com 5 peças trabalhando juntas: o Engenheiro 3D (GTE) calcula os objetos, organiza do mais longe ao mais perto na Mesa (RAM), o Trem Expresso (DMA) leva os desenhos para a Placa de Vídeo (GPU) mostrar na TV e leva os sons para o Estúdio de Áudio (SPU)!',
+          'O Estúdio de Som (SPU) recebe som por dois caminhos ao mesmo tempo: os efeitos de tiro e passos vêm da Mesa Principal (RAM) pelo trem DMA 4 passando pelo pedágio (BIU), enquanto a música e as falas vêm por um túnel exclusivo direto do leitor de CD (CD-XA)!',
         flowSteps: [
           {
-            nodeId: 'ps1-cpu',
-            tag: '1. SoC Sony (CPU + Coprocessador COP2: GTE)',
-            iconType: 'image',
-            text: 'O GTE projeta até 1,5 milhão de vértices 3D/s em ponto fixo (66 MIPS), calculando perspectiva, iluminação e coordenada Z.'
-          },
-          {
             nodeId: 'ps1-ram',
-            tag: '2. Main RAM: 2 MB EDO (Ordering Table + DMA Ch6 OTC)',
-            iconType: 'code',
-            text: 'O DMA Canal 6 (OTC) limpa a tabela em hardware e a RAM encadeia os polígonos de trás para frente (substituindo o Z-Buffer).'
+            tag: '1. Main RAM: 2 MB EDO (Bancos de Efeitos ADPCM)',
+            iconType: 'audio',
+            text: 'Fornece os pacotes de amostras sonoras (efeitos e instrumentos ADPCM) que serão enviados para a memória da SPU.'
           },
           {
             nodeId: 'ps1-dma',
-            tag: '3. Main Bus & DMA (Ch2 Linked-List GPU & Ch4 SPU)',
-            iconType: 'code',
-            text: 'O DMA Canal 2 percorre sozinho a lista encadeada (Ordering Table) enviando pacotes à GPU, e o DMA Canal 4 transfere áudio à SPU.'
+            tag: '2. Main Bus & DMA (Canal 4 — SPU Transfer)',
+            iconType: 'audio',
+            text: 'O DMA Canal 4 copia os bancos de áudio da EDO DRAM em direção ao Sub Bus sem ocupar o processador MIPS.'
           },
           {
-            nodeId: 'ps1-gpu',
-            tag: '4. Sony GPU + 1 MB VRAM (1024×512 + Video Encoder)',
-            iconType: 'image',
-            text: 'Rasteriza polígonos (360k flat / 180k texturizados/s) com Page-Flipping e 2 KB Tex Cache; sem sub-pixel e c/ mapeamento afim.'
+            nodeId: 'ps1-biu',
+            tag: '3. Ponte BIU & Sub Bus (16-bit → SPU)',
+            iconType: 'code',
+            text: 'Encaminha as transferências do DMA Ch4 e os comandos de registradores da CPU pelo Sub Bus até a SPU.'
+          },
+          {
+            nodeId: 'ps1-cd',
+            tag: '4. Subsistema CD-ROM 2x (Streaming Direto CD-XA / CD-DA)',
+            iconType: 'disc',
+            text: 'O decodificador CXD1815Q envia faixas musicais e vozes XA-ADPCM por um barramento direto para a SPU sem gastar RAM!'
           },
           {
             nodeId: 'ps1-spu',
-            tag: '5. SPU (24 Canais ADPCM + 512 KB DRAM + CD-XA)',
+            tag: '5. SPU Sony (24 Canais ADPCM + 512 KB DRAM + Reverb)',
             iconType: 'audio',
-            text: 'Toca 24 vozes a 44.1 kHz (com Pitch Modulation, FM, ADSR e Reverb) nos seus 512 KB e mixa áudio XA-ADPCM direto do CD!'
+            text: 'Mixa 24 vozes a 44.1 kHz nos seus 512 KB (com Pitch Mod, FM, ADSR e Reverb digital) junto com o streaming XA-ADPCM do CD!'
           }
         ],
         insight:
-          'Seg. Copetti & PSX-SPX: O PS1 tem um canal de DMA exclusivo (Canal 6 — OTC) cuja única função é limpar a Ordering Table de trás para frente na RAM! Depois, o DMA Canal 2 no modo Linked-List caminha pelos ponteiros da tabela enviando os polígonos à GPU sem usar a CPU.',
+          'Seg. Copetti & PSX-SPX: Graças à via direta entre o controlador de CD (CXD1815Q) e a SPU, o PlayStation toca músicas e diálogos comprimidos em XA-ADPCM direto do disco enquanto os 512 KB da SPU ficam 100% livres para os 24 canais de efeitos do jogo!',
         speechSimple:
-          '"Para fechar com chave de ouro, vejam todas as 5 peças trabalhando juntas: 1º, o motor GTE calcula o 3D; 2º, a memória RAM organiza os objetos do mais distante ao mais próximo numa lista limpa pelo DMA 6; 3º, o DMA dispara os gráficos pela linha azul e o som pela linha roxa; 4º, a placa de vídeo GPU desenha tudo no seu 1 MB de memória; e 5º, o chip SPU toca 24 canais de som com qualidade de CD!"',
+          '"Para fechar o PlayStation, vejam os 5 blocos do som trabalhando juntos: os efeitos sonoros saem da memória de 2 MB, pegam o DMA Canal 4 e atravessam a ponte BIU até os 512 KB do chip SPU de 24 canais, enquanto lá embaixo o leitor de CD manda a trilha sonora XA-ADPCM por uma linha verde direta para a SPU sem gastar memória!"',
         speechTech:
-          '"Neste último passo atuam 5 subsistemas segundo Copetti e PSX-SPX: (1) o GTE calcula as matrizes 3D em ponto fixo; (2) a EDO DRAM armazena a Ordering Table inicializada pelo DMA Ch6 (OTC); (3) o DMA Ch2 (em Linked-List mode) e o DMA Ch4 transferem os pacotes gráficos e sonoros; (4) a GPU rasteriza os polígonos e texturas CLUT no seu 1 MB de VRAM (1024×512); e (5) a SPU processa 24 canais ADPCM nos seus 512 KB de DRAM."',
-        activeNodes: ['ps1-cpu', 'ps1-ram', 'ps1-dma', 'ps1-gpu', 'ps1-spu'],
-        activeBuses: ['bus-ps1-cpu-dma', 'bus-ps1-ram-dma', 'bus-ps1-dma-gpu', 'bus-ps1-dma-spu'],
+          '"No subsistema de áudio operam 5 blocos segundo Copetti e PSX-SPX: os samples ADPCM saem da EDO DRAM (1) via DMA Ch4 (2) atravessando a ponte BIU no Sub Bus (3), enquanto o controlador CXD1815Q do CD-ROM 2x envia streams CD-DA e XA-ADPCM por um barramento direto (4) para a SPU CXD2922Q (5), que mixa 24 canais a 44.1 kHz com ADSR, FM e Reverb nos seus 512 KB de DRAM."',
+        activeNodes: ['ps1-ram', 'ps1-dma', 'ps1-biu', 'ps1-cd', 'ps1-spu'],
+        activeBuses: ['bus-ps1-ram-dma', 'bus-ps1-dma-spu', 'bus-ps1-cd-spu'],
         packets: [
           {
             pathId: 'path-ps1-ram-dma',
             color: '#10b981',
-            type: 'image',
-            label: '1. Ordering Table (Ch6/Ch2)',
+            type: 'audio',
+            label: '1. Samples da RAM',
             badgeX: 500,
             badgeY: 220
-          },
-          {
-            pathId: 'path-ps1-dma-gpu',
-            color: '#38bdf8',
-            type: 'image',
-            label: '2. DMA Ch2 -> GPU 3D',
-            badgeX: 800,
-            badgeY: 232
           },
           {
             pathId: 'path-ps1-dma-spu',
             color: '#a855f7',
             type: 'audio',
-            label: '3. DMA Ch4 -> SPU',
-            badgeX: 315,
+            label: '2. DMA Ch4 -> SPU',
+            badgeX: 310,
             badgeY: 398
+          },
+          {
+            pathId: 'path-ps1-cd-spu',
+            color: '#10b981',
+            type: 'audio',
+            label: '3. CD-XA Direto -> SPU',
+            badgeX: 480,
+            badgeY: 518
           }
         ]
       }
@@ -1766,7 +1835,7 @@ export default function ArquiteturaConsolesCDROM() {
     );
   };
 
-  // Renderizador de Bloco de Hardware no SVG
+  // Renderizador de Bloco de Hardware no SVG (com ajuste automático e clipPath anti-transbordo)
   const renderHardwareNode = (id, x, y, w, h, title, spec, subSpec, category) => {
     const style = CATEGORY_STYLES[category] || CATEGORY_STYLES.cpu;
     const active = isNodeActive(id);
@@ -1787,6 +1856,19 @@ export default function ArquiteturaConsolesCDROM() {
     const specColor = lightMode ? style.lightText : style.text;
     const subColor = lightMode ? '#475569' : '#cbd5e1';
 
+    // Largura dinâmica do selo de categoria no canto superior direito
+    const badgeW = Math.max(38, Math.round(style.badge.length * 4.8 + 10));
+    const availTitleW = Math.max(80, w - badgeW - 24);
+    const availBodyW = Math.max(100, w - 22);
+
+    const titleFontSize = w < 200 ? 11.4 : 12.4;
+    const specFontSize = w < 200 ? 10.2 : 11;
+    const subFontSize = w < 200 ? 9.5 : 10.2;
+
+    const estTitleW = title.length * (titleFontSize * 0.56);
+    const estSpecW = spec.length * (specFontSize * 0.55);
+    const estSubW = subSpec ? subSpec.length * (subFontSize * 0.52) : 0;
+
     return (
       <g
         key={id}
@@ -1799,6 +1881,12 @@ export default function ArquiteturaConsolesCDROM() {
           transition: 'opacity 0.3s ease, transform 0.2s ease'
         }}
       >
+        <defs>
+          <clipPath id={`clip-node-${id}`}>
+            <rect x={x + 4} y={y + 4} width={w - 8} height={h - 6} rx={8} />
+          </clipPath>
+        </defs>
+
         {/* Halo pulsante quando ativo na simulação, selecionado ou com mouse em cima */}
         {(active || isSelected || isHovered) && (
           <rect
@@ -1831,67 +1919,76 @@ export default function ArquiteturaConsolesCDROM() {
         {/* Barra de Categoria no Topo */}
         <rect x={x} y={y} width={w} height={6} rx={3} fill={stroke} />
 
-        {/* Etiqueta da Categoria no Canto Superior Direito */}
-        <rect
-          x={x + w - 54}
-          y={y + 10}
-          width={46}
-          height={15}
-          rx={4}
-          fill={lightMode ? '#ffffffcc' : '#090d16aa'}
-        />
-        <text
-          x={x + w - 31}
-          y={y + 20.5}
-          textAnchor="middle"
-          fill={specColor}
-          fontSize="8.5"
-          fontWeight="800"
-          fontFamily="Inter, system-ui, sans-serif"
-        >
-          {style.badge}
-        </text>
-
-        {/* Nome Principal do Chip */}
-        <text
-          x={x + 12}
-          y={y + 25}
-          textAnchor="start"
-          fill={titleColor}
-          fontSize="13"
-          fontWeight="800"
-          fontFamily="Inter, system-ui, sans-serif"
-        >
-          {title}
-        </text>
-
-        {/* Especificação Chave */}
-        <text
-          x={x + 12}
-          y={y + 44}
-          textAnchor="start"
-          fill={specColor}
-          fontSize="11.5"
-          fontWeight="700"
-          fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
-        >
-          {spec}
-        </text>
-
-        {/* Função Resumida */}
-        {subSpec && (
+        {/* Conteúdo interno protegido por clipPath e dimensionamento adaptativo */}
+        <g clipPath={`url(#clip-node-${id})`}>
+          {/* Etiqueta da Categoria no Canto Superior Direito */}
+          <rect
+            x={x + w - badgeW - 8}
+            y={y + 9}
+            width={badgeW}
+            height={14}
+            rx={4}
+            fill={lightMode ? '#ffffffcc' : '#090d16bb'}
+          />
           <text
-            x={x + 12}
-            y={y + 60}
-            textAnchor="start"
-            fill={subColor}
-            fontSize="10.5"
-            fontWeight="500"
+            x={x + w - 8 - badgeW / 2}
+            y={y + 18.8}
+            textAnchor="middle"
+            fill={specColor}
+            fontSize="7.8"
+            fontWeight="800"
             fontFamily="Inter, system-ui, sans-serif"
           >
-            {subSpec}
+            {style.badge}
           </text>
-        )}
+
+          {/* Nome Principal do Chip */}
+          <text
+            x={x + 11}
+            y={y + 24}
+            textAnchor="start"
+            fill={titleColor}
+            fontSize={titleFontSize}
+            fontWeight="800"
+            fontFamily="Inter, system-ui, sans-serif"
+            textLength={estTitleW > availTitleW ? availTitleW : undefined}
+            lengthAdjust={estTitleW > availTitleW ? 'spacingAndGlyphs' : undefined}
+          >
+            {title}
+          </text>
+
+          {/* Especificação Chave */}
+          <text
+            x={x + 11}
+            y={y + 43}
+            textAnchor="start"
+            fill={specColor}
+            fontSize={specFontSize}
+            fontWeight="700"
+            fontFamily="Inter, system-ui, sans-serif"
+            textLength={estSpecW > availBodyW ? availBodyW : undefined}
+            lengthAdjust={estSpecW > availBodyW ? 'spacingAndGlyphs' : undefined}
+          >
+            {spec}
+          </text>
+
+          {/* Função Resumida */}
+          {subSpec && (
+            <text
+              x={x + 11}
+              y={y + 59}
+              textAnchor="start"
+              fill={subColor}
+              fontSize={subFontSize}
+              fontWeight="500"
+              fontFamily="Inter, system-ui, sans-serif"
+              textLength={estSubW > availBodyW ? availBodyW : undefined}
+              lengthAdjust={estSubW > availBodyW ? 'spacingAndGlyphs' : undefined}
+            >
+              {subSpec}
+            </text>
+          )}
+        </g>
       </g>
     );
   };
@@ -2281,7 +2378,7 @@ export default function ArquiteturaConsolesCDROM() {
               >
                 <svg
                   ref={svgRef}
-                  viewBox="0 0 1000 560"
+                  viewBox="0 0 1000 572"
                   className="w-full h-auto select-none block"
                   xmlns="http://www.w3.org/2000/svg"
                 >
@@ -2316,11 +2413,11 @@ export default function ArquiteturaConsolesCDROM() {
                   </defs>
 
                   {/* Fundo e Grade */}
-                  <rect width="1000" height="560" fill={lightMode ? '#ffffff' : '#080c15'} />
-                  <rect width="1000" height="560" fill="url(#techGrid)" />
+                  <rect width="1000" height="572" fill={lightMode ? '#ffffff' : '#080c15'} />
+                  <rect width="1000" height="572" fill="url(#techGrid)" />
 
                   {/* Cabeçalho Limpo dentro do SVG */}
-                  <g transform="translate(25, 26)">
+                  <g transform="translate(25, 25)">
                     <text
                       x="0"
                       y="0"
@@ -2357,7 +2454,7 @@ export default function ArquiteturaConsolesCDROM() {
                         <path id="path-pce-cpu-vdc" d="M 290 175 L 322 175 L 322 338 L 290 338" />
                         <path id="path-pce-vdc" d="M 170 380 L 170 400" />
                         {/* Seg. Copetti & Archaic Pixels: VDC envia stream digital de 9 bits DIRETO ao VCE (sem passar pela VRAM!) */}
-                        <path id="path-pce-vce" d="M 290 362 L 314 362 L 314 512 L 290 512" />
+                        <path id="path-pce-vce" d="M 290 362 L 314 362 L 314 508 L 290 508" />
                         <path id="path-pce-audio" d="M 845 276 L 845 351 L 665 351" />
                         <path id="path-pce-cpu-audio" d="M 290 156 L 365 156 L 365 351 L 425 351" />
                       </defs>
@@ -2365,46 +2462,46 @@ export default function ArquiteturaConsolesCDROM() {
                       {/* Molduras dos 3 Módulos Físicos */}
                       <rect
                         x="25"
-                        y="60"
+                        y="58"
                         width="310"
-                        height="485"
+                        height="484"
                         rx="14"
                         fill={lightMode ? '#f8fafc' : '#0c1322'}
                         stroke="#3b82f6"
                         strokeWidth="1.8"
                         strokeDasharray="6 4"
                       />
-                      <text x="40" y="82" fill="#3b82f6" fontSize="11" fontWeight="800">
+                      <text x="40" y="80" fill="#3b82f6" fontSize="11" fontWeight="800">
                         CONSOLE BASE: PC ENGINE (1987)
                       </text>
 
                       <rect
                         x="395"
-                        y="60"
+                        y="58"
                         width="295"
-                        height="485"
+                        height="484"
                         rx="14"
                         fill={lightMode ? '#f8fafc' : '#0c1322'}
                         stroke="#f59e0b"
                         strokeWidth="1.8"
                         strokeDasharray="6 4"
                       />
-                      <text x="410" y="82" fill="#f59e0b" fontSize="11" fontWeight="800">
+                      <text x="410" y="80" fill="#f59e0b" fontSize="11" fontWeight="800">
                         INTERFACE UNIT (IFU-30) + SYSTEM CARD
                       </text>
 
                       <rect
                         x="715"
-                        y="60"
+                        y="58"
                         width="260"
-                        height="485"
+                        height="484"
                         rx="14"
                         fill={lightMode ? '#f8fafc' : '#0c1322'}
                         stroke="#f97316"
                         strokeWidth="1.8"
                         strokeDasharray="6 4"
                       />
-                      <text x="730" y="82" fill="#f97316" fontSize="11" fontWeight="800">
+                      <text x="730" y="80" fill="#f97316" fontSize="11" fontWeight="800">
                         LEITOR ÓPTICO CD-ROM² (1988)
                       </text>
 
@@ -2438,7 +2535,7 @@ export default function ArquiteturaConsolesCDROM() {
                       {renderBusPath('bus-pce-exp', 'M 425 237 L 365 237 L 365 156 L 290 156', '#38bdf8', 5)}
                       {renderBusPath('bus-pce-cpu-vdc', 'M 290 175 L 322 175 L 322 338 L 290 338', '#38bdf8', 4.5)}
                       {renderBusPath('bus-pce-vdc', 'M 170 380 L 170 400', '#38bdf8', 5)}
-                      {renderBusPath('bus-pce-vce', 'M 290 362 L 314 362 L 314 512 L 290 512', '#a855f7', 5)}
+                      {renderBusPath('bus-pce-vce', 'M 290 362 L 314 362 L 314 508 L 290 508', '#a855f7', 5)}
                       {renderBusPath('bus-pce-audio', 'M 845 276 L 845 351 L 665 351', '#10b981', 4.5)}
                       {renderBusPath('bus-pce-cpu-audio', 'M 290 156 L 365 156 L 365 351 L 425 351', '#ec4899', 4.5)}
 
@@ -2449,7 +2546,7 @@ export default function ArquiteturaConsolesCDROM() {
                         115,
                         240,
                         82,
-                        'CPU HuC6280 + MMU + PSG',
+                        'CPU HuC6280 + MMU',
                         '65C02 @ 7.16 MHz + 8× MPR (21b)',
                         '6ch PSG + Timer 7b + IRQ + Porta I/O',
                         'cpu'
@@ -2490,10 +2587,10 @@ export default function ArquiteturaConsolesCDROM() {
                       {renderHardwareNode(
                         'pce-vce',
                         50,
-                        482,
+                        478,
                         240,
                         60,
-                        'VCE: HuC6260 (Cores & Sync)',
+                        'VCE: HuC6260 (Cores)',
                         'Recebe 9-bit do VDC • 32 Paletas',
                         'Até 482 cores (de 512) -> Saída TV',
                         'gpu'
@@ -2517,7 +2614,7 @@ export default function ArquiteturaConsolesCDROM() {
                         198,
                         240,
                         78,
-                        'CD-ROM² Work RAM & BRAM',
+                        'CD-ROM² Work RAM',
                         '64 KB DRAM + 2 KB Save BRAM',
                         'Bancos MMU $80–$87 + Ponte SCSI',
                         'ram'
@@ -2541,7 +2638,7 @@ export default function ArquiteturaConsolesCDROM() {
                         190,
                         220,
                         86,
-                        'Leitor CD-ROM² (1x SCSI)',
+                        'Leitor CD-ROM² (1x)',
                         '150 KB/s • Barramento SCSI-1',
                         '650 MB (Mode 1 + Áudio CD-DA)',
                         'cd'
@@ -2558,79 +2655,79 @@ export default function ArquiteturaConsolesCDROM() {
                     <g>
                       <defs>
                         {/* Todos os caminhos <path> são idênticos às trilhas de barramento! */}
-                        <path id="path-mcd-cd" d="M 885 215 L 885 150 L 795 150" />
-                        <path id="path-mcd-prg" d="M 700 187 L 700 245" />
-                        <path id="path-mcd-sub-asic" d="M 605 150 L 550 150" />
-                        <path id="path-mcd-asic-word" d="M 461 194 L 461 245" />
-                        <path id="path-mcd-main-word" d="M 372 285 L 335 285 L 335 150 L 305 150" />
-                        <path id="path-mcd-main-ram" d="M 165 187 L 165 215" />
-                        <path id="path-mcd-vdp" d="M 305 170 L 318 170 L 318 368 L 305 368" />
-                        <path id="path-mcd-z80" d="M 40 256 L 28 256 L 28 481 L 40 481" />
-                        <path id="path-mcd-sub-pcm" d="M 700 331 L 700 385" />
-                        <path id="path-mcd-pcm" d="M 885 303 L 885 385" />
+                        <path id="path-mcd-cd" d="M 883 215 L 883 146 L 782 146" />
+                        <path id="path-mcd-prg" d="M 683 187 L 683 245" />
+                        <path id="path-mcd-sub-asic" d="M 584 146 L 544 146" />
+                        <path id="path-mcd-asic-word" d="M 444 194 L 444 245" />
+                        <path id="path-mcd-main-word" d="M 344 288 L 324 288 L 324 146 L 300 146" />
+                        <path id="path-mcd-main-ram" d="M 167 187 L 167 215" />
+                        <path id="path-mcd-vdp" d="M 300 170 L 313 170 L 313 368 L 300 368" />
+                        <path id="path-mcd-z80" d="M 35 256 L 23 256 L 23 481 L 35 481" />
+                        <path id="path-mcd-sub-pcm" d="M 683 331 L 683 385" />
+                        <path id="path-mcd-pcm" d="M 883 303 L 883 385" />
                       </defs>
 
                       {/* Molduras Mega Drive vs Ponte Word RAM vs Mega-CD */}
                       <rect
-                        x="20"
-                        y="60"
-                        width="305"
-                        height="485"
+                        x="18"
+                        y="58"
+                        width="300"
+                        height="484"
                         rx="14"
                         fill={lightMode ? '#f8fafc' : '#0c1322'}
                         stroke="#3b82f6"
                         strokeWidth="1.8"
                         strokeDasharray="6 4"
                       />
-                      <text x="35" y="82" fill="#3b82f6" fontSize="11" fontWeight="800">
+                      <text x="33" y="80" fill="#3b82f6" fontSize="11" fontWeight="800">
                         CONSOLE BASE: MEGA DRIVE (1988)
                       </text>
 
                       <rect
-                        x="350"
-                        y="60"
-                        width="220"
-                        height="485"
+                        x="332"
+                        y="58"
+                        width="224"
+                        height="484"
                         rx="14"
                         fill={lightMode ? '#faf5ff' : '#140d24'}
                         stroke="#a855f7"
                         strokeWidth="1.8"
                       />
-                      <text x="460" y="82" textAnchor="middle" fill="#c084fc" fontSize="11" fontWeight="800">
+                      <text x="444" y="80" textAnchor="middle" fill="#c084fc" fontSize="11" fontWeight="800">
                         GATE ARRAY ASIC &amp; WORD RAM
                       </text>
 
                       <rect
-                        x="590"
-                        y="60"
-                        width="390"
-                        height="485"
+                        x="570"
+                        y="58"
+                        width="412"
+                        height="484"
                         rx="14"
                         fill={lightMode ? '#f8fafc' : '#0c1322'}
                         stroke="#10b981"
                         strokeWidth="1.8"
                         strokeDasharray="6 4"
                       />
-                      <text x="605" y="82" fill="#10b981" fontSize="11" fontWeight="800">
+                      <text x="585" y="80" fill="#10b981" fontSize="11" fontWeight="800">
                         EXPANSÃO SEGA MEGA-CD (1991 — SUB-CPU 12.5 MHz)
                       </text>
 
                       {/* Barramentos Completos Direcionados (Mesmo formato e direção dos pacotes!) */}
-                      {renderBusPath('bus-mcd-cd', 'M 885 215 L 885 150 L 795 150', '#f97316', 5)}
-                      {renderBusPath('bus-mcd-prg', 'M 700 187 L 700 245', '#10b981', 5)}
-                      {renderBusPath('bus-mcd-sub-asic', 'M 605 150 L 550 150', '#a855f7', 5)}
-                      {renderBusPath('bus-mcd-asic-word', 'M 461 194 L 461 245', '#a855f7', 5)}
-                      {renderBusPath('bus-mcd-main-word', 'M 372 285 L 335 285 L 335 150 L 305 150', '#ec4899', 5)}
-                      {renderBusPath('bus-mcd-main-ram', 'M 165 187 L 165 215', '#10b981', 5)}
-                      {renderBusPath('bus-mcd-vdp', 'M 305 170 L 318 170 L 318 368 L 305 368', '#38bdf8', 5)}
-                      {renderBusPath('bus-mcd-z80', 'M 40 256 L 28 256 L 28 481 L 40 481', '#f59e0b', 4.5)}
-                      {renderBusPath('bus-mcd-sub-pcm', 'M 700 331 L 700 385', '#ec4899', 5)}
-                      {renderBusPath('bus-mcd-pcm', 'M 885 303 L 885 385', '#10b981', 5)}
+                      {renderBusPath('bus-mcd-cd', 'M 883 215 L 883 146 L 782 146', '#f97316', 5)}
+                      {renderBusPath('bus-mcd-prg', 'M 683 187 L 683 245', '#10b981', 5)}
+                      {renderBusPath('bus-mcd-sub-asic', 'M 584 146 L 544 146', '#a855f7', 5)}
+                      {renderBusPath('bus-mcd-asic-word', 'M 444 194 L 444 245', '#a855f7', 5)}
+                      {renderBusPath('bus-mcd-main-word', 'M 344 288 L 324 288 L 324 146 L 300 146', '#ec4899', 5)}
+                      {renderBusPath('bus-mcd-main-ram', 'M 167 187 L 167 215', '#10b981', 5)}
+                      {renderBusPath('bus-mcd-vdp', 'M 300 170 L 313 170 L 313 368 L 300 368', '#38bdf8', 5)}
+                      {renderBusPath('bus-mcd-z80', 'M 35 256 L 23 256 L 23 481 L 35 481', '#f59e0b', 4.5)}
+                      {renderBusPath('bus-mcd-sub-pcm', 'M 683 331 L 683 385', '#ec4899', 5)}
+                      {renderBusPath('bus-mcd-pcm', 'M 883 303 L 883 385', '#10b981', 5)}
 
                       {/* Blocos Mega Drive Base */}
                       {renderHardwareNode(
                         'mcd-maincpu',
-                        40,
+                        35,
                         105,
                         265,
                         82,
@@ -2641,7 +2738,7 @@ export default function ArquiteturaConsolesCDROM() {
                       )}
                       {renderHardwareNode(
                         'mcd-arbiter',
-                        40,
+                        35,
                         215,
                         265,
                         82,
@@ -2652,7 +2749,7 @@ export default function ArquiteturaConsolesCDROM() {
                       )}
                       {renderHardwareNode(
                         'mcd-vdp',
-                        40,
+                        35,
                         325,
                         265,
                         86,
@@ -2663,7 +2760,7 @@ export default function ArquiteturaConsolesCDROM() {
                       )}
                       {renderHardwareNode(
                         'mcd-z80',
-                        40,
+                        35,
                         440,
                         265,
                         82,
@@ -2673,47 +2770,47 @@ export default function ArquiteturaConsolesCDROM() {
                         'audio'
                       )}
 
-                      {/* Blocos Ponte Gate Array ASIC & Word RAM */}
+                      {/* Blocos Ponte Gate Array ASIC & Word RAM (Alargados para 200px) */}
                       {renderHardwareNode(
                         'mcd-asic',
-                        372,
+                        344,
                         110,
-                        178,
+                        200,
                         84,
                         'Gate Array / ASIC',
-                        'Rotação/Escala + Comm Ports',
-                        '$A12010–2E + IRQ2 + Tiles 8×8',
+                        'Rotação + 16 Comm Ports',
+                        '$A12010–2E • IRQ2 • Tiles 8×8',
                         'gpu'
                       )}
                       {renderHardwareNode(
                         'mcd-wordram',
-                        372,
+                        344,
                         245,
-                        178,
-                        95,
+                        200,
+                        92,
                         'Word RAM (256 KB)',
                         'Modo 2M ou 1M/1M ($600000)',
-                        'Bank Swap Sub ↔ Main',
+                        'Bank Swap: Sub ↔ Main-CPU',
                         'ram'
                       )}
 
-                      {/* Blocos Expansão Mega-CD */}
+                      {/* Blocos Expansão Mega-CD (Alargados e sem texto cortado) */}
                       {renderHardwareNode(
                         'mcd-subcpu',
-                        605,
+                        584,
                         105,
-                        190,
+                        198,
                         82,
                         'Sub-CPU: 2º 68000',
-                        '12.5 MHz + 128KB BIOS',
-                        '+8KB BRAM • Controla CDC/PCM',
+                        '12.5 MHz + 128 KB BIOS',
+                        '+8 KB BRAM • Controla CDC/PCM',
                         'cpu'
                       )}
                       {renderHardwareNode(
                         'mcd-prgram',
-                        605,
+                        584,
                         245,
-                        190,
+                        198,
                         86,
                         'Program RAM (512 KB)',
                         '512 KB DRAM (4× 128 KB)',
@@ -2722,20 +2819,20 @@ export default function ArquiteturaConsolesCDROM() {
                       )}
                       {renderHardwareNode(
                         'mcd-drive',
-                        810,
+                        796,
                         215,
-                        155,
+                        174,
                         88,
-                        'CD 1x + CDC LC8951',
-                        '150 KB/s + 16KB Cache',
+                        'CD 1x + CDC',
+                        '150 KB/s • LC8951 (16KB)',
                         'DMA CDC + Áudio CD-DA',
                         'cd'
                       )}
                       {renderHardwareNode(
                         'mcd-pcm',
-                        605,
+                        584,
                         385,
-                        360,
+                        386,
                         86,
                         'Áudio Mega-CD: Ricoh RF5C164 (8ch PCM)',
                         '64 KB PCM Wave RAM (Sub-CPU) + Mixagem CD-DA',
@@ -2753,14 +2850,15 @@ export default function ArquiteturaConsolesCDROM() {
                   {activeTab === 'ps1' && (
                     <g>
                       <defs>
-                        <path id="path-ps1-cd-sub" d="M 650 420 L 560 420" />
-                        <path id="path-ps1-biu-dma" d="M 455 375 L 455 326" />
+                        <path id="path-ps1-cd-sub" d="M 645 420 L 580 420" />
+                        <path id="path-ps1-biu-dma" d="M 460 375 L 460 326" />
                         <path id="path-ps1-dma-ram" d="M 500 276 L 500 164" />
                         <path id="path-ps1-ram-dma" d="M 500 164 L 500 276" />
                         <path id="path-ps1-dma-cpu" d="M 200 276 L 200 247" />
                         <path id="path-ps1-cpu-dma" d="M 200 247 L 200 276" />
                         <path id="path-ps1-dma-gpu" d="M 800 276 L 800 187" />
-                        <path id="path-ps1-dma-spu" d="M 455 326 L 455 375 M 355 420 L 275 420" />
+                        <path id="path-ps1-dma-spu" d="M 460 326 L 460 375 M 340 420 L 280 420" />
+                        <path id="path-ps1-cd-spu" d="M 808 467 L 808 518 L 155 518 L 155 467" />
                       </defs>
 
                       {/* BLOCO 1: SoC SONY CXD8530BQ */}
@@ -2880,7 +2978,7 @@ export default function ArquiteturaConsolesCDROM() {
                         72,
                         330,
                         115,
-                        'Sony GPU + 1 MB VRAM + RGB DAC',
+                        'Sony GPU + 1 MB VRAM',
                         '1024×512 (Dual-Port VRAM / SGRAM) • 2KB Cache',
                         'Page-Flipping + CLUT • Sem Sub-pixel / Z-Buffer',
                         'gpu'
@@ -2890,19 +2988,20 @@ export default function ArquiteturaConsolesCDROM() {
                       <line x1="200" y1="247" x2="200" y2="276" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="5" opacity="0.4" />
                       <line x1="500" y1="164" x2="500" y2="276" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="5" opacity="0.4" />
                       <line x1="800" y1="187" x2="800" y2="276" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="5" opacity="0.4" />
-                      <line x1="455" y1="326" x2="455" y2="375" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="5" opacity="0.4" />
-                      <line x1="275" y1="420" x2="355" y2="420" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="4.5" opacity="0.4" />
-                      <line x1="560" y1="420" x2="650" y2="420" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="4.5" opacity="0.4" />
+                      <line x1="460" y1="326" x2="460" y2="375" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="5" opacity="0.4" />
+                      <line x1="280" y1="420" x2="340" y2="420" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="4.5" opacity="0.4" />
+                      <line x1="580" y1="420" x2="645" y2="420" stroke={lightMode ? '#cbd5e1' : '#334155'} strokeWidth="4.5" opacity="0.4" />
 
                       {/* Barramentos Ativos com Direção Exata e Setas */}
-                      {renderBusPath('bus-ps1-cd-sub', 'M 650 420 L 560 420', '#f97316', 5)}
-                      {renderBusPath('bus-ps1-biu-dma', 'M 455 375 L 455 326', '#f59e0b', 5)}
+                      {renderBusPath('bus-ps1-cd-sub', 'M 645 420 L 580 420', '#f97316', 5)}
+                      {renderBusPath('bus-ps1-biu-dma', 'M 460 375 L 460 326', '#f59e0b', 5)}
                       {renderBusPath('bus-ps1-dma-ram', 'M 500 276 L 500 164', '#10b981', 5)}
                       {renderBusPath('bus-ps1-ram-dma', 'M 500 164 L 500 276', '#10b981', 5)}
                       {renderBusPath('bus-ps1-dma-cpu', 'M 200 276 L 200 247', '#ec4899', 5)}
                       {renderBusPath('bus-ps1-cpu-dma', 'M 200 247 L 200 276', '#38bdf8', 5)}
                       {renderBusPath('bus-ps1-dma-gpu', 'M 800 276 L 800 187', '#38bdf8', 5)}
-                      {renderBusPath('bus-ps1-dma-spu', 'M 455 326 L 455 375 M 355 420 L 275 420', '#a855f7', 5)}
+                      {renderBusPath('bus-ps1-dma-spu', 'M 460 326 L 460 375 M 340 420 L 280 420', '#a855f7', 5)}
+                      {renderBusPath('bus-ps1-cd-spu', 'M 808 467 L 808 518 L 155 518 L 155 467', '#10b981', 4.5)}
 
                       {/* MAIN BUS (32-BIT @ 132 MB/s + DMA CONTROLLER) COM HOVER E SELEÇÃO SINCRONIZADOS */}
                       <g
@@ -2974,25 +3073,25 @@ export default function ArquiteturaConsolesCDROM() {
                         </text>
                       </g>
 
-                      {/* BUS INTERFACE UNIT (BIU) E SUB BUS */}
+                      {/* BUS INTERFACE UNIT (BIU) E SUB BUS (Alargado p/ 240px) */}
                       {renderHardwareNode(
                         'ps1-biu',
-                        355,
+                        340,
                         375,
-                        205,
-                        86,
+                        240,
+                        92,
                         'Ponte BIU, BIOS & SIO0',
                         'BIOS 512KB + 3 Root Counters',
                         'SIO0 (Controles + MemCard 128KB)',
                         'storage'
                       )}
 
-                      {/* BLOCO SPU */}
+                      {/* BLOCO SPU (Alargado p/ 250px) */}
                       {renderHardwareNode(
                         'ps1-spu',
                         30,
                         375,
-                        245,
+                        250,
                         92,
                         'SPU (24 Canais ADPCM)',
                         '16-bit @ 44.1 kHz + 512 KB DRAM',
@@ -3003,25 +3102,17 @@ export default function ArquiteturaConsolesCDROM() {
                       {/* BLOCO SUBSISTEMA CD-ROM 2X */}
                       {renderHardwareNode(
                         'ps1-cd',
-                        650,
+                        645,
                         375,
-                        320,
+                        325,
                         92,
-                        'Subsistema CD-ROM (2x — 4 Chips)',
+                        'Subsistema CD-ROM (2x)',
                         'DSP + 68HC05 + CXD1815Q + 32 KB SRAM',
                         '300 KB/s • Áudio XA • Wobble SCEx/LibCrypt',
                         'cd'
                       )}
 
-                      {/* Via Direta de Áudio CD-DA / XA para a SPU */}
-                      <path
-                        d="M 810 467 L 810 518 L 150 518 L 150 467"
-                        fill="none"
-                        stroke="#10b981"
-                        strokeWidth="2.2"
-                        strokeDasharray="6 4"
-                      />
-                      <text x="480" y="511" textAnchor="middle" fill="#10b981" fontSize="10" fontWeight="700">
+                      <text x="480" y="510" textAnchor="middle" fill="#10b981" fontSize="9.8" fontWeight="700">
                         STREAMING DIRETO DO CONTROLADOR DE CD (CXD1815Q): ÁUDIO XA-ADPCM / CD-DA → SPU (SEM GASTAR CPU/RAM)
                       </text>
 
@@ -3029,10 +3120,10 @@ export default function ArquiteturaConsolesCDROM() {
                     </g>
                   )}
 
-                  {/* Rodapé Discreto */}
+                  {/* Rodapé Discreto abaixo das molduras (sem colidir com as bordas tracejadas) */}
                   <text
                     x="25"
-                    y="547"
+                    y="560"
                     fill={lightMode ? '#64748b' : '#64748b'}
                     fontSize="10"
                     fontWeight="600"

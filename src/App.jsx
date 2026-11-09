@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 
 // ============================================================================
-// BASE DE DADOS COMPLETA (RODRIGO COPETTI & RETROREVERSING)
+// BASE DE DADOS COMPLETA (COPETTI, RETROREVERSING, ARCHAIC PIXELS, PLUTIEDEV & PSX-SPX)
 // Todos os barramentos usam caminhos <path> direcionados do início ao fim!
 // ============================================================================
 
@@ -39,53 +39,61 @@ const ARCHITECTURE_DATA = {
     id: 'pce',
     shortName: 'PC Engine CD-ROM²',
     name: 'NEC PC Engine + CD-ROM² (1988)',
-    subtitle: 'HuC6280 (8-bit + MMU 21-bit) • Vídeo Dual-Chip (VDC + VCE) • Expansão CD-ROM²',
+    subtitle: 'HuC6280 (65C02 + MMU 21b + PSG + Timer/IRQ/IO) • Vídeo Dual-Chip (VDC ↔ VRAM 16b → VCE) • CD-ROM²',
     year: '1988',
     sources: [
-      { label: 'Copetti — PC Engine', url: 'https://classic.copetti.org/writings/consoles/pc-engine/' }
+      { label: 'Copetti — PC Engine', url: 'https://classic.copetti.org/writings/consoles/pc-engine/' },
+      { label: 'Archaic Pixels — PCE Tech Wiki', url: 'https://www.archaicpixels.com/Main_Page' },
+      { label: 'RetroReversing — PC Engine', url: 'https://www.retroreversing.com/pc-engine/' }
     ],
     simulationSteps: [
       {
         step: 0,
         shortTitle: 'Visão Geral',
-        title: 'Console Base: Os 4 Componentes do PC Engine Original',
+        title: 'Console Base: Os 5 Blocos do PC Engine Original (HuC6280, RAM, VDC, VRAM e VCE)',
         summary:
-          'O PC Engine base funciona com 4 blocos principais: o processador HuC6280 (8 bits a 7.16 MHz com MMU interna), 8 KB de memória Work RAM e a dupla de chips de vídeo de 16 bits (VDC + VCE).',
+          'O PC Engine base reúne 5 blocos: a CPU HuC6280 (núcleo 65C02 + MMU de 21 bits + 6 canais PSG + Timer/IRQ/IO no mesmo chip), 8 KB de Work RAM, o VDC (HuC6270) ligado aos 64 KB de VRAM de 16 bits e o VCE (HuC6260).',
         simpleAnalogy:
-          'Imagine um trabalhador rápido que só consegue colocar 8 folhas na mesa por vez (64 KB), mas tem um fichário inteligente (MMU) que troca essas folhas rapidamente de um arquivo de 2 MB.',
+          'Imagine um trabalhador rápido que só consegue colocar 8 folhas na mesa por vez (64 KB), mas tem um fichário inteligente (MMU) que troca essas folhas de um arquivo de 2 MB, além de dois artistas de 16 bits (VDC e VCE) para desenhar e colorir.',
         flowSteps: [
           {
             nodeId: 'pce-cpu',
-            tag: '1. CPU HuC6280 + MMU',
+            tag: '1. CPU HuC6280 (CPU + MMU + PSG + Timer/IO)',
             iconType: 'code',
-            text: 'Processador de 8 bits a 7.16 MHz; sua MMU interna pagina blocos de 8 KB para enxergar até 2 MB.'
+            text: 'Integra no mesmo chip o núcleo 65C02 (7.16 MHz), MMU de 21 bits (8× MPR), 6 canais de som PSG, Timer de 7 bits, Controlador IRQ e Porta I/O.'
           },
           {
             nodeId: 'pce-wram',
-            tag: '2. Work RAM Base (8 KB)',
+            tag: '2. Work RAM Base (8 KB SRAM)',
             iconType: 'code',
-            text: 'Guarda as variáveis imediatas da partida no console original (mas precisa de RAM extra para ler CDs).'
+            text: 'Mapeada na página $F8 da MMU; guarda as variáveis da partida no console original (mas precisa de RAM extra para ler CDs).'
           },
           {
             nodeId: 'pce-vdc',
-            tag: '3. VDC: HuC6270 (Vídeo)',
+            tag: '3. VDC: HuC6270 (Gerador de Vídeo)',
             iconType: 'image',
-            text: 'Primeiro chip gráfico: monta os cenários (Tiles 8×8) e até 64 Sprites usando palavras de 16 bits.'
+            text: 'Primeiro chip gráfico: monta o plano de fundo (Tiles 8×8) e até 64 Sprites (com DMA próprio p/ SATB) lendo palavras de 16 bits.'
+          },
+          {
+            nodeId: 'pce-vram',
+            tag: '4. VRAM Dedicada (64 KB — Bus 16-bit)',
+            iconType: 'image',
+            text: 'Ligada exclusivamente ao VDC por um barramento de 16 bits (32K Words) — o VCE não acessa a VRAM diretamente!'
           },
           {
             nodeId: 'pce-vce',
-            tag: '4. VCE: HuC6260 (Cores)',
+            tag: '5. VCE: HuC6260 (Codificador de Cores)',
             iconType: 'image',
-            text: 'Segundo chip gráfico: recebe o desenho do VDC e aplica 32 paletas (até 482 cores) para a TV.'
+            text: 'Recebe o fluxo de pixels de 9 bits direto do VDC, aplica as 32 paletas (até 482 cores na tela) e fornece o clock de sincronismo.'
           }
         ],
         insight:
-          'Por ter apenas 8 KB de memória interna e nenhuma BIOS de fábrica, o PC Engine sozinho não conseguia guardar os dados vindos de um CD — exigindo os módulos de expansão.',
+          'Seg. Copetti & Archaic Pixels: A VRAM de 64 KB é conectada exclusivamente ao VDC (em 16 bits). O VCE não lê a VRAM: ele recebe os pixels em 9 bits direto do VDC e as paletas de cores direto da CPU!',
         speechSimple:
-          '"Pessoal, começamos pelo PC Engine de 1988, o primeiro videogame da história a usar CD-ROM. Aqui no Passo 0 vemos as 4 peças do console base: o cérebro de 8 bits com paginador de memória, a pequena memória de 8 KB e os dois chips de vídeo que desenham e pintam até 482 cores na tela."',
+          '"Pessoal, começamos pelo PC Engine de 1988, o primeiro videogame da história a usar CD-ROM. Aqui no Passo 0 vemos as 5 peças do console base: o cérebro HuC6280 (que já traz paginador de memória, som de 6 canais, timer e porta de controles dentro dele), a memória de 8 KB, e o trio de vídeo: o chip VDC ligado à sua memória VRAM de 16 bits e o chip VCE que pinta até 482 cores na tela."',
         speechTech:
-          '"Começamos pelo PC Engine base: temos a CPU HuC6280 a 7.16 MHz com sua MMU de 21 bits (até 2 MB em páginas de 8 KB), os 8 KB de Work RAM interna e a dupla gráfica de 16 bits formada pelo VDC (HuC6270) e pelo VCE (HuC6260)."',
-        activeNodes: ['pce-cpu', 'pce-wram', 'pce-vdc', 'pce-vce'],
+          '"Começamos pelo PC Engine base segundo Copetti e Archaic Pixels: temos a CPU HuC6280 a 7.16 MHz (integrando núcleo 65C02, MMU de 21 bits com 8 MPRs, 6ch PSG, Timer, IRQ e I/O), os 8 KB de Work RAM, e o subsistema gráfico onde o VDC (HuC6270) acessa com exclusividade os 64 KB de VRAM em 16 bits e envia um stream digital de 9 bits ao VCE (HuC6260)."',
+        activeNodes: ['pce-cpu', 'pce-wram', 'pce-vdc', 'pce-vram', 'pce-vce'],
         activeBuses: [],
         packets: []
       },
@@ -100,29 +108,29 @@ const ARCHITECTURE_DATA = {
         flowSteps: [
           {
             nodeId: 'pce-syscard',
-            tag: '1. System Card (BIOS do CD)',
+            tag: '1. System Card (BIOS do CD-ROM²)',
             iconType: 'code',
-            text: 'Entra no slot de 38 pinos e entrega o sistema operacional para controlar o leitor óptico.'
+            text: 'Entra no slot HuCard de 38 pinos e entrega as rotinas de BIOS para controlar o leitor óptico e o ADPCM.'
           },
           {
             nodeId: 'pce-syscard',
-            tag: '2. System Card (Expansão RAM)',
+            tag: '2. System Card (Expansão de RAM)',
             iconType: 'code',
-            text: 'Adiciona memória extra no próprio cartão: +192 KB (Super System Card) ou +2 MB (Arcade Card).'
+            text: 'Adiciona bancos extras de RAM no próprio cartão: +192 KB (Super System Card 3.0) ou +2 MB DRAM (Arcade Card).'
           },
           {
             nodeId: 'pce-cpu',
-            tag: '3. CPU HuC6280 + MMU',
+            tag: '3. CPU HuC6280 + MMU (8× MPR)',
             iconType: 'code',
-            text: 'Recebe a BIOS do cartão pelo barramento e mapeia os novos bancos de RAM nas páginas da MMU.'
+            text: 'Recebe a BIOS pelo barramento de 21 bits e mapeia os novos bancos de RAM nas janelas de 8 KB da MMU.'
           }
         ],
         insight:
-          'Seg. Copetti: Os CDs do PC Engine não têm trava de região! A verificação acontecia apenas nos pinos do cartão inserido no slot HuCard.',
+          'Seg. Copetti: Os CDs do PC Engine não têm trava de região! A verificação acontecia apenas na pinagem do cartão HuCard (invertida entre o PC Engine japonês e o TurboGrafx-16 americano).',
         speechSimple:
           '"Como o videogame original não sabia ler CDs, colocamos um cartão chamado System Card na entrada normal de jogos. Vejam a linha amarela completa levando o sistema do CD e até 2 Megabytes de memória extra direto para a CPU!"',
         speechTech:
-          '"Como o PC Engine base não tinha BIOS de CD, inserimos a System Card no slot de 38 pinos: ela fornece as rotinas de controle do CD-ROM² para a CPU HuC6280 e expande a RAM mapeada na MMU em +192 KB ou +2 MB."',
+          '"Como o PC Engine base não tinha BIOS de CD, inserimos a System Card no slot de 38 pinos: ela fornece as rotinas de controle do CD-ROM² para a CPU HuC6280 e expande a RAM mapeada na MMU em +192 KB (Super System Card) ou +2 MB (Arcade Card)."',
         activeNodes: ['pce-syscard', 'pce-cpu'],
         activeBuses: ['bus-pce-hucard'],
         packets: [
@@ -139,37 +147,37 @@ const ARCHITECTURE_DATA = {
       {
         step: 2,
         shortTitle: 'Leitura CD 1x',
-        title: 'Leitura do CD em 1x (150 KB/s): Leitor → CD-RAM → CPU',
+        title: 'Leitura do CD em 1x (150 KB/s): Leitor SCSI → IFU-30 CD-RAM → CPU',
         summary:
-          'Os 3 componentes trabalham em sequência: o leitor óptico lê o disco a 150 KB/s, abastece os 64 KB de memória RAM da base acoplada e entrega os dados da fase para a CPU.',
+          'Os 3 componentes trabalham em sequência: o leitor óptico lê o disco a 150 KB/s pelo controlador SCSI, abastece os 64 KB de memória RAM da base acoplada (IFU-30) e entrega os dados da fase para a CPU.',
         simpleAnalogy:
           'O CD guarda 650 MB, mas o laser 1x lê devagar. Por isso, ele copia primeiro os dados da fase atual para uma bancada de 64 KB dentro da base acoplada antes de a CPU usar.',
         flowSteps: [
           {
             nodeId: 'pce-drive',
-            tag: '1. Leitor CD-ROM² (1x)',
+            tag: '1. Leitor CD-ROM² (1x — Controlador SCSI)',
             iconType: 'disc',
-            text: 'Lê os setores do disco a 150 KB/s e envia pelo cabo SCSI até a base acoplada (Interface Unit).'
+            text: 'Lê os setores do disco a 150 KB/s e envia pelo barramento SCSI-1 até a base acoplada (Interface Unit IFU-30).'
           },
           {
             nodeId: 'pce-cdram',
-            tag: '2. CD-ROM² Work RAM (64 KB)',
+            tag: '2. CD-ROM² Work RAM (64 KB + 2 KB BRAM)',
             iconType: 'code',
-            text: 'Armazena o código e os gráficos da fase atual nos 64 KB de DRAM (+ 2 KB de BRAM para salvar o jogo).'
+            text: 'Armazena o código e os gráficos da fase nos 64 KB de DRAM (256 KB no Super CD-ROM²) + 2 KB de BRAM para saves.'
           },
           {
             nodeId: 'pce-cpu',
             tag: '3. CPU HuC6280 + MMU',
             iconType: 'code',
-            text: 'Acessa os 64 KB da base pela porta traseira de expansão para executar o código carregado do CD.'
+            text: 'Acessa os 64 KB da base pela porta traseira de expansão (mapeados nos bancos $80–$87 da MMU) para executar o jogo.'
           }
         ],
         insight:
-          'Diferente dos cartuchos (onde a leitura é instantânea), no CD é obrigatório copiar a fase para a memória RAM antes de jogar — criando as telas de Loading.',
+          'Diferente dos cartuchos (onde a leitura é instantânea nos chips), no CD é obrigatório copiar a fase para a memória RAM antes de jogar — criando as telas de Loading.',
         speechSimple:
           '"Vejam os 3 blocos ativos: o laser lê o CD a 150 KB por segundo, guarda os arquivos da fase na memória de 64 KB da base acoplada e envia pelo barramento azul direto até a CPU!"',
         speechTech:
-          '"Para carregar uma fase, o leitor 1x transfere dados a 150 KB/s via SCSI para os 64 KB de Work RAM da Interface Unit (256 KB no Super CD-ROM²), e a CPU HuC6280 lê esses bancos pela porta de expansão traseira."',
+          '"Para carregar uma fase, o leitor 1x transfere dados a 150 KB/s via controlador SCSI para os 64 KB de Work RAM da Interface Unit (256 KB no Super CD-ROM²), e a CPU HuC6280 pagina esses bancos pela porta de expansão traseira."',
         activeNodes: ['pce-drive', 'pce-cdram', 'pce-cpu'],
         activeBuses: ['bus-pce-scsi', 'bus-pce-exp'],
         packets: [
@@ -177,7 +185,7 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-pce-scsi',
             color: '#f97316',
             type: 'disc',
-            label: '150 KB/s (Dados CD)',
+            label: '150 KB/s (SCSI)',
             badgeX: 700,
             badgeY: 205
           },
@@ -194,49 +202,49 @@ const ARCHITECTURE_DATA = {
       {
         step: 3,
         shortTitle: 'Vídeo Dual-Chip',
-        title: 'Caminho Completo da Imagem: 5 Componentes Gráficos em Ação',
+        title: 'Pipeline Gráfico Fiel (Copetti): CD-RAM → CPU → VDC ↔ VRAM (16-bit) e VDC → VCE',
         summary:
-          'Neste passo 5 blocos trabalham em sequência: os gráficos saem da RAM do CD, passam pela CPU e descem pela dupla de vídeo de 16 bits (VDC → VRAM de 64 KB → VCE) até formar a imagem na TV.',
+          'Os 5 blocos atuam na topologia exata do hardware: os gráficos saem da CD-RAM para a CPU, que alimenta o VDC (tiles/sprites) e o VCE (paletas). O VDC grava na VRAM exclusiva de 16 bits e envia o fluxo de pixels de 9 bits direto para o VCE!',
         simpleAnalogy:
-          'A CPU pega os desenhos guardados na bancada do CD e entrega para dois artistas de 16 bits: o primeiro (VDC) monta o cenário no seu caderno (VRAM) e o segundo (VCE) pinta tudo com 482 cores!',
+          'A CPU pega os desenhos na bancada do CD e entrega ao 1º artista (VDC). O VDC guarda e lê os desenhos no seu caderno exclusivo de 16 bits (VRAM) e manda o desenho pronto direto para o 2º artista (VCE) pintar com 482 cores!',
         flowSteps: [
           {
             nodeId: 'pce-cdram',
             tag: '1. CD-ROM² Work RAM (64 KB)',
             iconType: 'code',
-            text: 'Fornece os gráficos brutos (cenários e sprites da fase) que foram carregados do CD.'
+            text: 'Fornece os gráficos brutos (tiles 8×8 de cenário e sprites 16×16) que foram carregados do CD-ROM.'
           },
           {
             nodeId: 'pce-cpu',
-            tag: '2. CPU HuC6280 + MMU',
+            tag: '2. CPU HuC6280 (Instruções TAI/TIA)',
             iconType: 'code',
-            text: 'Busca os gráficos na RAM do CD pela porta traseira e envia em pares de bytes para o chip VDC.'
+            text: 'Transfere os gráficos em rajada para o VDC (e atualiza as 32 paletas no VCE durante o intervalo V-Blank).'
           },
           {
             nodeId: 'pce-vdc',
-            tag: '3. VDC: HuC6270 (Desenhista)',
+            tag: '3. VDC: HuC6270 (Desenhista + DMA SATB)',
             iconType: 'image',
-            text: 'Recebe os gráficos da CPU, monta a camada de fundo (Tiles 8×8) e atualiza os 64 Sprites via DMA.'
+            text: 'Grava os tiles e sprites na VRAM via barramento de 16 bits e usa DMA interno para atualizar a tabela de 64 sprites (SATB).'
           },
           {
             nodeId: 'pce-vram',
-            tag: '4. VRAM Dedicada (64 KB 16-bit)',
+            tag: '4. VRAM Exclusiva do VDC (64 KB 16-bit)',
             iconType: 'image',
-            text: 'Guarda os desenhos em palavras de 16 bits, permitindo ao VDC ler duas linhas de pixels por vez.'
+            text: 'Conectada exclusivamente ao VDC (VDC ↔ VRAM em words de 16 bits), devolvendo duas linhas de bitplanes por leitura.'
           },
           {
             nodeId: 'pce-vce',
-            tag: '5. VCE: HuC6260 (Pintor)',
+            tag: '5. VCE: HuC6260 (Pintor — Recebe 9-bit do VDC)',
             iconType: 'image',
-            text: 'Recebe o fluxo de imagem em 9 bits vindo do VDC, aplica até 482 cores e gera o sinal da TV.'
+            text: 'Recebe o stream digital de 9 bits diretamente do VDC (sem tocar na VRAM!), aplica até 482 cores e gera o vídeo da TV.'
           }
         ],
         insight:
-          'Seg. Copetti: Embora a CPU seja de 8 bits, o chip VDC acessa a VRAM em palavras de 16 bits! Isso dobrava a velocidade gráfica e deixava o visual no nível dos consoles de 16 bits.',
+          'Detalhe crucial do diagrama de Copetti & Archaic Pixels: O VCE NÃO lê a VRAM! A VRAM é exclusiva do VDC (VDC ↔ VRAM). O VDC monta a linha e envia um barramento digital de 9 bits direto para o VCE colorir.',
         speechSimple:
-          '"Olhem a direção exata da imagem passando pelos 5 componentes: ela sai da memória de 64 KB do CD, passa pela CPU, entra pela lateral do chip VDC, desce para a memória VRAM de 16 bits e termina no chip VCE pintando 482 cores na TV!"',
+          '"Olhem a precisão deste caminho nos 5 componentes: os gráficos saem da memória do CD, passam pela CPU e entram no chip VDC. Reparem que o VDC guarda e lê os desenhos na sua memória VRAM exclusiva de 16 bits, e depois uma linha roxa sai direto do VDC para o chip VCE pintar 482 cores na TV!"',
         speechTech:
-          '"Vejam os 5 blocos do pipeline gráfico com direção completa: a CPU HuC6280 busca os tiles na CD-RAM e envia ao VDC (HuC6270). O VDC grava nos 64 KB de VRAM em palavras de 16 bits e envia o stream de 9 bits para o VCE (HuC6260) colorir até 482 cores."',
+          '"Seguindo fielmente o diagrama de Copetti e Archaic Pixels: a CPU HuC6280 busca os tiles na CD-RAM e alimenta o VDC (HuC6270) e as paletas do VCE. A VRAM de 64 KB opera num barramento dedicado de 16 bits exclusivo do VDC (VDC ↔ VRAM), enquanto o VDC envia o pixel stream de 9 bits diretamente para o VCE (HuC6260) converter em RGB/Composto."',
         activeNodes: ['pce-cdram', 'pce-cpu', 'pce-vdc', 'pce-vram', 'pce-vce'],
         activeBuses: ['bus-pce-exp', 'bus-pce-cpu-vdc', 'bus-pce-vdc', 'bus-pce-vce'],
         packets: [
@@ -252,7 +260,7 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-pce-cpu-vdc',
             color: '#38bdf8',
             type: 'image',
-            label: '2. CPU -> Vídeo VDC',
+            label: '2. CPU -> VDC/VCE',
             badgeX: 255,
             badgeY: 298
           },
@@ -260,7 +268,7 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-pce-vdc',
             color: '#38bdf8',
             type: 'image',
-            label: '3. Words 16-bit VRAM',
+            label: '3. VDC <-> VRAM 16b',
             badgeX: 95,
             badgeY: 390
           },
@@ -268,46 +276,46 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-pce-vce',
             color: '#a855f7',
             type: 'image',
-            label: '4. Pinta 482 Cores',
-            badgeX: 95,
-            badgeY: 472
+            label: '4. VDC -> VCE (9-bit)',
+            badgeX: 262,
+            badgeY: 440
           }
         ]
       },
       {
         step: 4,
         shortTitle: 'Áudio Triplo',
-        title: 'Mixagem Tripla: Leitor de CD + Som da CPU → Mixer ADPCM',
+        title: 'Mixagem Tripla: Leitor de CD (CD-DA) + CPU (6ch PSG) → Mixer & ADPCM (OKI MSM5205)',
         summary:
-          'Os 3 componentes sonoros se encontram no mixer: o leitor manda música de estúdio direto do disco, a CPU envia seus 6 canais de efeitos e o módulo ADPCM soma as vozes dubladas de 64 KB.',
+          'Os 3 componentes sonoros se encontram no mixer da IFU-30: o leitor manda música Red Book CD-DA direto do disco, a CPU envia seus 6 canais Waveform PSG e o chip OKI MSM5205 soma as vozes dubladas dos 64 KB ADPCM.',
         simpleAnalogy:
-          'É uma banda com 3 músicos: o CD toca a música gravada em estúdio, a CPU manda os efeitos de tiro/pulo e o chip ADPCM fala as vozes dos personagens!',
+          'É uma banda com 3 músicos: o CD toca a música gravada em estúdio, a CPU manda os efeitos de tiro/pulo e o chip ADPCM fala as vozes dos personagens usando sua própria memória de 64 KB!',
         flowSteps: [
           {
             nodeId: 'pce-drive',
-            tag: '1. Leitor CD-ROM² (Música CD-DA)',
+            tag: '1. Leitor CD-ROM² (Música Red Book CD-DA)',
             iconType: 'disc',
-            text: 'Lê as faixas de música estéreo direto do disco óptico sem gastar 1 byte de memória RAM.'
+            text: 'Lê as faixas de áudio estéreo de 16 bits / 44.1 kHz direto do CD sem gastar 1 byte de memória RAM.'
           },
           {
             nodeId: 'pce-cpu',
-            tag: '2. CPU HuC6280 (6 Canais PSG)',
+            tag: '2. CPU HuC6280 (6 Canais Waveform PSG)',
             iconType: 'audio',
-            text: 'Gera simultaneamente 6 canais de ondas programáveis para os efeitos sonoros da partida.'
+            text: 'Gera 6 canais de ondas programáveis (32 amostras de 5 bits por canal, com suporte a DDA, LFO e ruído).'
           },
           {
             nodeId: 'pce-adpcm',
-            tag: '3. Áudio ADPCM + Mixer (64 KB)',
+            tag: '3. Áudio ADPCM (OKI MSM5205 + 64 KB DRAM)',
             iconType: 'audio',
-            text: 'Decodifica vozes dubladas usando 64 KB exclusivos (chip OKI MSM5205) e mistura com o CD e a CPU.'
+            text: 'Decodifica vozes dubladas em 4-bit ADPCM (até 32 kHz) nos seus 64 KB exclusivos e mixa com o CD-DA e o PSG.'
           }
         ],
         insight:
-          'Separar 64 KB exclusivos para o som ADPCM permitia ter falas dubladas sem diminuir o espaço dos gráficos na memória principal.',
+          'Separar 64 KB de DRAM exclusivos para o chip OKI MSM5205 permitia tocar falas dubladas a qualquer momento sem roubar espaço dos gráficos na Work RAM.',
         speechSimple:
-          '"Para fechar o PC Engine, vejam as linhas de som: o leitor manda a música de estúdio direto do CD e a CPU manda os efeitos sonoros para se juntarem às vozes dubladas nos 64 KB do módulo ADPCM!"',
+          '"Para fechar o PC Engine, vejam as linhas de som: o leitor manda a música de estúdio direto do CD e a CPU manda os 6 canais de efeitos sonoros para se juntarem às vozes dubladas nos 64 KB do módulo ADPCM!"',
         speechTech:
-          '"O subsistema de áudio combina 3 fontes em paralelo: streaming Red Book CD-DA vindo do leitor óptico, os 6 canais Waveform PSG enviados pela CPU HuC6280 e as vozes digitais no decodificador OKI MSM5205 com 64 KB próprios."',
+          '"O subsistema de áudio combina 3 fontes em paralelo: streaming Red Book CD-DA vindo do leitor óptico, os 6 canais Waveform PSG (com modo DDA e LFO) integrados na CPU HuC6280 e as vozes no decodificador OKI MSM5205 com 64 KB de DRAM dedicada."',
         activeNodes: ['pce-drive', 'pce-adpcm', 'pce-cpu'],
         activeBuses: ['bus-pce-audio', 'bus-pce-cpu-audio'],
         packets: [
@@ -333,147 +341,147 @@ const ARCHITECTURE_DATA = {
     components: [
       {
         id: 'pce-cpu',
-        title: 'CPU HuC6280 + MMU',
-        spec: '8-bit 65C02 @ 7.16 MHz',
-        subSpec: 'MMU 8× MPR (21-bit) + 6ch PSG',
+        title: 'CPU HuC6280 + MMU + PSG',
+        spec: '8-bit 65C02 @ 1.79 / 7.16 MHz',
+        subSpec: 'MMU 8× MPR (21b) + 6ch PSG + Timer/IRQ/IO',
         category: 'cpu',
-        simpleRole: 'O cérebro do console: comanda a lógica do jogo, troca páginas de memória e ainda gera 6 canais de som.',
+        simpleRole: 'O cérebro completo do console: comanda o jogo, troca páginas de memória (MMU), lê os controles e gera 6 canais de som.',
         metrics: [
-          { label: 'Clock', value: '1.79 / 7.16 MHz' },
-          { label: 'Barramento', value: '8-bit Dados / 21-bit Addr' },
-          { label: 'Paginação MMU', value: '8× Páginas de 8 KB (2 MB)' },
-          { label: 'Áudio Interno', value: '6 Canais Waveform PSG' }
+          { label: 'Clock Duplo', value: '1.79 MHz ou 7.16 MHz' },
+          { label: 'Barramentos', value: '8-bit Dados / 21-bit Físico MMU' },
+          { label: 'Paginação MMU', value: '8× Regs MPR de 8 KB (Até 2 MB)' },
+          { label: 'Integrados no Chip', value: '6ch PSG + Timer 7b + IRQ + I/O' }
         ],
         detail:
-          'Seg. Copetti: Baseado no 65C02, adiciona instruções rápidas de cópia em bloco e uma MMU com 8 registradores (MPR) que expandem o endereçamento de 64 KB para 2 MB, além de 6 canais de som internos.'
+          'Seg. Copetti & Archaic Pixels: Projetado pela Hudson Soft e fabricado pela Epson. Integra no mesmo chip o núcleo 65C02 aprimorado (com instruções de transferência em bloco TAI, TIA, TDD, TIN, TII), a MMU de 8 registradores MPR (convertendo endereços lógicos de 16 bits em 21 bits físicos), o gerador de som PSG de 6 canais, um Timer de 7 bits, controlador de interrupções (IRQ1, IRQ2, TIQ) e porta I/O de 8 bits para os controles.'
       },
       {
         id: 'pce-wram',
         title: 'Work RAM Base',
-        spec: '8 KB SRAM Interna',
-        subSpec: 'Memória Original do Console',
+        spec: '8 KB SRAM Interna ($F8)',
+        subSpec: 'Memória Original do Console Base',
         category: 'ram',
-        simpleRole: 'A pequena mesa de trabalho original do videogame (8 KB), usada para guardar as variáveis da partida.',
+        simpleRole: 'A pequena mesa de trabalho original do videogame (8 KB), usada para guardar a pilha e as variáveis da partida.',
         metrics: [
-          { label: 'Capacidade', value: '8 KB SRAM' },
-          { label: 'Mapeamento', value: '1 Página de 8 KB na MMU' },
-          { label: 'Acesso', value: 'Rápido (Sem fila de espera)' },
-          { label: 'No CD-ROM²', value: 'Complementada pela RAM do CD' }
+          { label: 'Capacidade', value: '8 KB SRAM (32 KB no SuperGrafx)' },
+          { label: 'Página Física', value: 'Banco $F8 na MMU (Zero-Page/Stack)' },
+          { label: 'Acesso', value: 'Zero Wait-States (Sem espera)' },
+          { label: 'No CD-ROM²', value: 'Expandida p/ +64 KB / +256 KB' }
         ],
         detail:
-          'Memória de trabalho original do console base. Como 8 KB bastavam para cartões ROM mas eram pequenos para dados de CD, o módulo CD-ROM² precisou adicionar novos bancos de RAM.'
+          'Memória SRAM interna do PC Engine original mapeada no banco físico $F8 (onde ficam a Zero Page e a Stack do 65C02). Como 8 KB eram insuficientes para armazenar fases lidas de um CD-ROM, a unidade CD-ROM² e as System Cards adicionaram novos bancos de RAM paginados pela MMU.'
       },
       {
         id: 'pce-vdc',
         title: 'VDC: HuC6270 (Vídeo)',
-        spec: 'Barramento VRAM 16-bit',
-        subSpec: 'Tiles 8×8 + 64 Sprites (DMA)',
+        spec: 'Barramento VRAM 16-bit Exclusivo',
+        subSpec: 'Tiles 8×8 + 64 Sprites + DMA Interno',
         category: 'gpu',
-        simpleRole: 'O "desenhista" de 16 bits: monta os blocos do cenário e posiciona até 64 personagens na tela.',
+        simpleRole: 'O "desenhista" de 16 bits: monta os blocos do cenário, controla os 64 personagens na tela e envia os pixels prontos para o VCE.',
         metrics: [
-          { label: 'Acesso VRAM', value: 'Palavras de 16 bits' },
-          { label: 'Cenário', value: 'Camada de Tiles 8×8' },
-          { label: 'Sprites', value: '64 na tela (16 por linha)' },
-          { label: 'Saída Digital', value: 'Envia imagem 9-bit ao VCE' }
+          { label: 'Bus VRAM', value: '16-bit Dados / 15-bit Addr (Exclusivo)' },
+          { label: 'Cenário', value: '1 Camada de Tiles 8×8 (BAT)' },
+          { label: 'Sprites', value: '64 na tela (16 por linha, até 32×64)' },
+          { label: 'DMA Interno', value: 'VRAM → SATB e VRAM → VRAM' }
         ],
         detail:
-          'Seg. Copetti: Embora a CPU seja de 8 bits, o VDC organiza a VRAM em palavras de 16 bits. Possui DMA interno para atualizar a tabela de 64 sprites (SATB) e envia os pixels para o VCE colorir.'
+          'Seg. Copetti & Archaic Pixels: Embora a CPU seja de 8 bits, o VDC acessa seus 64 KB de VRAM por um barramento exclusivo de 16 bits, além de possuir DMA interno para copiar a tabela de atributos de 64 sprites (SATB) e blocos de VRAM. Envia um fluxo digital de 9 bits diretamente para o chip VCE.'
       },
       {
         id: 'pce-vram',
-        title: 'VRAM Dedicada',
-        spec: '64 KB SRAM (16-bit Words)',
-        subSpec: 'Guarda Cenários e Sprites',
+        title: 'VRAM Dedicada (Exclusiva VDC)',
+        spec: '64 KB SRAM (32K Words × 16-bit)',
+        subSpec: 'Ligada exclusivamente ao chip VDC',
         category: 'ram',
-        simpleRole: 'O caderno de desenho exclusivo do vídeo, lido em 16 bits para dobrar a velocidade dos gráficos.',
+        simpleRole: 'O caderno de desenho exclusivo do chip VDC, lido em palavras de 16 bits para dobrar a velocidade dos gráficos.',
         metrics: [
-          { label: 'Capacidade', value: '64 KB (32K Words × 16-bit)' },
-          { label: 'Formato', value: '4 Planos de Bits (16 cores/bloco)' },
-          { label: 'Sprites', value: '16×16 até 32×64 pixels' },
-          { label: 'Ligação', value: 'Exclusiva do chip VDC' }
+          { label: 'Capacidade', value: '64 KB (32.768 Words de 16 bits)' },
+          { label: 'Formato Planar', value: '4 Bitplanes (16 cores por tile/sprite)' },
+          { label: 'Tabela BAT', value: 'Background Attribute Table (32×32 a 128×64)' },
+          { label: 'Conexão Física', value: 'Exclusiva do VDC (VCE não acessa)' }
         ],
         detail:
-          'Acessada diretamente pelo VDC em palavras de 16 bits. Isso permite ler duas linhas de gráfico de uma só vez, garantindo animações rápidas mesmo com uma CPU de 8 bits.'
+          'Seg. Copetti: Conectada única e exclusivamente ao VDC (HuC6270) por um barramento dedicado de 16 bits. Cada leitura de 16 bits traz duas linhas de planos de bits de uma só vez. O chip VCE não tem ligação com a VRAM.'
       },
       {
         id: 'pce-vce',
-        title: 'VCE: HuC6260 (Cores)',
-        spec: '32 Paletas × 16 Cores',
-        subSpec: 'Até 482 Cores na Tela (de 512)',
+        title: 'VCE: HuC6260 (Cores & Clock)',
+        spec: '32 Paletas × 16 Cores (RGB 9-bit)',
+        subSpec: 'Recebe 9-bit do VDC • Até 482 Cores',
         category: 'gpu',
-        simpleRole: 'O "pintor" do console: recebe o desenho do VDC e aplica as cores finais antes de mandar para a TV.',
+        simpleRole: 'O "pintor" e maestro de tempo: recebe o desenho de 9 bits do VDC, aplica até 482 cores e manda o sinal para a TV.',
         metrics: [
-          { label: 'Paletas', value: '16 Cenário + 16 Sprites' },
-          { label: 'Cores na Tela', value: 'Até 482 cores simultâneas' },
-          { label: 'Catálogo Total', value: '512 cores (RGB 9-bit)' },
-          { label: 'Saída de Vídeo', value: 'Sinal para a TV' }
+          { label: 'Paletas Internas', value: '32 Paletas (16 BG + 16 Sprites)' },
+          { label: 'Cores Simultâneas', value: 'Até 482 cores na tela (de 512)' },
+          { label: 'Entrada Digital', value: 'Stream de 9 bits vindo do VDC' },
+          { label: 'Clock de Vídeo', value: '5.37 / 7.16 / 10.74 MHz (Dot Clock)' }
         ],
         detail:
-          'Seg. Copetti: Recebe os pixels vindos do VDC, consulta suas 32 paletas internas (16 para fundo e 16 para personagens) e gera o sinal de vídeo para a TV.'
+          'Seg. Copetti & Archaic Pixels: Conectado à CPU (para receber as 32 paletas na sua Color Table RAM interna) e ao VDC (de quem recebe o pixel de 9 bits: 4 bits de cor + 4 bits de paleta + 1 bit BG/Sprite). Também gera os sinais de sincronismo HSYNC/VSYNC e o Dot Clock para o VDC.'
       },
       {
         id: 'pce-syscard',
-        title: 'System Card (HuCard)',
-        spec: 'BIOS ROM + Expansão RAM',
+        title: 'System Card (Slot HuCard 38p)',
+        spec: 'BIOS ROM + Expansão de RAM',
         subSpec: '+192 KB (Super) ou +2 MB (Arcade)',
         category: 'storage',
         simpleRole: 'Cartão colocado na entrada de jogos que ensina o console a usar o CD e adiciona memória RAM extra.',
         metrics: [
           { label: 'Conector', value: 'Slot HuCard (38 pinos)' },
-          { label: 'System Card', value: 'Sistema BIOS do CD-ROM²' },
-          { label: 'Super System Card', value: 'BIOS + 192 KB de RAM extra' },
-          { label: 'Arcade Card', value: 'BIOS + 2 MB de RAM extra' }
+          { label: 'System Card 1.0–2.1', value: '256 KB BIOS ROM do CD-ROM²' },
+          { label: 'Super System Card 3.0', value: 'BIOS + 192 KB SRAM (Total 256 KB)' },
+          { label: 'Arcade Card Pro/Duo', value: 'BIOS + 2 MB DRAM c/ registradores' }
         ],
         detail:
-          'Inserida no slot de cartucho do PC Engine. Fornece o sistema operacional do leitor de CD e expande a memória RAM para jogos mais pesados.'
+          'Inserida no slot de cartucho de 38 pinos. Fornece o sistema operacional (BIOS) do CD-ROM² e expande a memória RAM paginada pela MMU (ou integrada no PC Engine Duo).'
       },
       {
         id: 'pce-cdram',
-        title: 'CD-ROM² Work RAM',
-        spec: '64 KB DRAM + 2 KB BRAM',
-        subSpec: 'Memória das Fases + Saves',
+        title: 'CD-ROM² Work RAM & BRAM',
+        spec: '64 KB DRAM + 2 KB Save BRAM',
+        subSpec: 'Interface Unit (IFU-30) • Bancos $80–$87',
         category: 'ram',
-        simpleRole: 'Bancada de 64 KB na base do CD onde ficam os arquivos da fase atual, mais 2 KB para salvar o jogo.',
+        simpleRole: 'Bancada de 64 KB na base do CD onde ficam os arquivos da fase atual, mais 2 KB com bateria para salvar o progresso.',
         metrics: [
-          { label: 'RAM Geral', value: '64 KB (256 KB no Super CD)' },
-          { label: 'Save Memory', value: '2 KB BRAM com bateria' },
-          { label: 'Mapeamento', value: 'Páginas de 8 KB na MMU' },
-          { label: 'Entrada', value: 'Recebe dados a 150 KB/s do CD' }
+          { label: 'RAM da IFU-30', value: '64 KB DRAM (256 KB no Super CD)' },
+          { label: 'Save Memory', value: '2 KB BRAM mantida por capacitor/bateria' },
+          { label: 'Mapeamento MMU', value: '8 Páginas de 8 KB (Bancos $80–$87)' },
+          { label: 'Controlador CD', value: 'Ponte SCSI-1 + Subchannel Decoder' }
         ],
         detail:
-          'Localizada na base (Interface Unit). Recebe o código e os gráficos lidos do CD-ROM antes de serem usados pela CPU e pelo chip de vídeo.'
+          'Localizada na base Interface Unit (IFU-30). Recebe o código e os gráficos lidos do CD-ROM via controlador SCSI antes de serem processados pela CPU e enviados ao VDC.'
       },
       {
         id: 'pce-adpcm',
-        title: 'Áudio ADPCM + Mixer',
-        spec: '64 KB ADPCM + OKI MSM5205',
-        subSpec: 'Vozes Digitais + Música CD-DA',
+        title: 'Áudio ADPCM (OKI MSM5205) + Mixer',
+        spec: '64 KB ADPCM DRAM + Fader CD-DA',
+        subSpec: 'Vozes 4-bit ADPCM (1.6–32 kHz) + CD-DA',
         category: 'audio',
-        simpleRole: 'Chip de som com 64 KB exclusivos só para falar as vozes dos personagens sem gastar a memória dos gráficos.',
+        simpleRole: 'Chip de som com 64 KB exclusivos só para falar as vozes dos personagens e misturar com a música do CD.',
         metrics: [
-          { label: 'Memória de Voz', value: '64 KB Exclusivos' },
-          { label: 'Decodificador', value: 'Chip OKI MSM5205' },
-          { label: 'Qualidade', value: 'Vozes até 32 kHz' },
-          { label: 'Saída Final', value: 'Mixa Vozes + Música do CD' }
+          { label: 'Memória de Voz', value: '64 KB DRAM Exclusivos p/ ADPCM' },
+          { label: 'Decodificador', value: 'OKI MSM5205 (4-bit → 12-bit PCM)' },
+          { label: 'Taxa de Amostragem', value: 'Variável de 1.6 kHz até 32.08 kHz' },
+          { label: 'Saída Estéreo', value: 'Mixa ADPCM + CD-DA + 6ch PSG' }
         ],
         detail:
-          'Seg. Copetti: Dedica 64 KB exclusivos para vozes e efeitos gravados (ADPCM), deixando a memória principal livre para o código e os cenários do jogo.'
+          'Seg. Copetti: Dedica 64 KB exclusivos de DRAM para amostras de voz (ADPCM) alimentadas no decodificador OKI MSM5205, deixando a memória principal livre para o código e os cenários do jogo.'
       },
       {
         id: 'pce-drive',
-        title: 'Leitor CD-ROM² (1x)',
-        spec: '150 KB/s • Barramento SCSI',
-        subSpec: '650 MB (Dados + Música de CD)',
+        title: 'Leitor CD-ROM² (1x SCSI)',
+        spec: '150 KB/s • Barramento SCSI-1',
+        subSpec: '650 MB (Dados Mode 1 + Áudio CD-DA)',
         category: 'cd',
         simpleRole: 'O primeiro leitor de CD dos videogames: lê até 650 MB de fases, animações e músicas de estúdio.',
         metrics: [
-          { label: 'Velocidade', value: '1x (150 KB por segundo)' },
-          { label: 'Interface', value: 'Barramento SCSI-1' },
-          { label: 'Capacidade', value: 'Até 650 MB por disco' },
-          { label: 'Trava no Disco', value: 'Sem trava física no CD' }
+          { label: 'Velocidade', value: '1x CLV (150 KB por segundo)' },
+          { label: 'Protocolo', value: 'Barramento SCSI-1 na IFU-30' },
+          { label: 'Capacidade', value: 'Até 650 MB (Dados + Red Book Audio)' },
+          { label: 'Trava Regional', value: 'Nenhuma no CD (apenas no HuCard)' }
         ],
         detail:
-          'Primeira unidade de CD-ROM para videogames domésticos (1988). Lê trilhas de dados do jogo e faixas de música com qualidade de CD.'
+          'Primeira unidade de CD-ROM para videogames domésticos (lançada em dezembro de 1988 no Japão). Lê trilhas de dados ISO Mode 1 a 150 KB/s e faixas de música Red Book CD-DA.'
       }
     ]
   },
@@ -482,52 +490,54 @@ const ARCHITECTURE_DATA = {
     id: 'megacd',
     shortName: 'Mega Drive + Mega-CD',
     name: 'Sega Mega Drive + Mega-CD (1991)',
-    subtitle: 'Dual Motorola 68000 (7.67 MHz + 12.5 MHz) • Word RAM Bank Swap • ASIC Gráfico & VDP',
+    subtitle: 'Dual Motorola 68000 (7.67 MHz + 12.5 MHz) • Gate Array ASIC & Word RAM • CDC LC8951 & Ricoh PCM',
     year: '1991',
     sources: [
-      { label: 'Copetti — Mega Drive / Genesis (PT-BR)', url: 'https://www.copetti.org/pt-br/writings/consoles/mega-drive-genesis/' }
+      { label: 'Copetti — Mega Drive / Genesis (PT-BR)', url: 'https://www.copetti.org/pt-br/writings/consoles/mega-drive-genesis/' },
+      { label: 'Plutiedev — Mega Drive & Mega-CD Dev', url: 'https://plutiedev.com/' },
+      { label: 'RetroReversing — Mega Drive / Mega-CD', url: 'https://www.retroreversing.com/megadrive' }
     ],
     simulationSteps: [
       {
         step: 0,
         shortTitle: 'Visão Geral',
-        title: 'Mega Drive Base: Os 4 Componentes do Console Original',
+        title: 'Mega Drive Base: Os 4 Componentes do Console Original (68000, Árbitro/RAM, VDP+PSG e Z80+YM2612)',
         summary:
-          'No console base atuam 4 componentes: o Motorola 68000 (7.67 MHz), os 64 KB de RAM com o Árbitro de Barramento, o chip de vídeo VDP e o Zilog Z80 (3.58 MHz) dedicado ao som.',
+          'No console base atuam 4 blocos: o Motorola 68000 (7.67 MHz), os 64 KB de Work RAM com o Árbitro de Barramento e I/O, o VDP (que também abriga o chip de som SN76489 PSG) e o Zilog Z80 (3.58 MHz) comandando o sintetizador FM Yamaha YM2612.',
         simpleAnalogy:
-          'São dois funcionários trabalhando juntos: o chefe (68000) cuida do jogo na sua mesa de 64 KB, o desenhista (VDP) monta a imagem e um assistente (Z80) cuida só da música, coordenados por um guarda de trânsito (Árbitro).',
+          'São dois funcionários trabalhando juntos: o chefe (68000) cuida do jogo na sua mesa de 64 KB, o desenhista (VDP) monta a imagem e um assistente (Z80) cuida só da música FM/PSG, coordenados por um guarda de trânsito (Árbitro).',
         flowSteps: [
           {
             nodeId: 'mcd-maincpu',
             tag: '1. Main-CPU: Motorola 68000 (7.67 MHz)',
             iconType: 'code',
-            text: 'CPU principal com barramento de 16 bits (enxerga até 16 MB); processa a física e as regras do jogo.'
+            text: 'CPU híbrida 16/32-bit (registradores de 32 bits, ALU e bus de 16 bits, endereçamento de 24 bits p/ 16 MB).'
           },
           {
             nodeId: 'mcd-arbiter',
-            tag: '2. 64 KB RAM + Árbitro de Bus',
+            tag: '2. 64 KB Work RAM + Árbitro de Bus & I/O',
             iconType: 'code',
-            text: 'Guarda os dados da partida e pausa rapidamente uma CPU quando a outra precisa usar o mesmo caminho.'
+            text: 'Guarda o estado do jogo e coordena o barramento entre o 68000 (`$A11100` BusReq), o Z80 (janela de 32 KB) e o DMA do VDP.'
           },
           {
             nodeId: 'mcd-vdp',
-            tag: '3. VDP (Modo V + DMA)',
+            tag: '3. VDP (Modo V + DMA + PSG Integrado)',
             iconType: 'image',
-            text: 'Chip de vídeo (~13.4 MHz) que desenha 4 planos gráficos, até 80 sprites e 64 cores na tela.'
+            text: 'Desenha 4 planos gráficos e 80 sprites (64 KB VRAM, 128 B CRAM e 80 B VSRAM) e integra fisicamente o chip de som SN76489 PSG.'
           },
           {
             nodeId: 'mcd-z80',
-            tag: '4. Zilog Z80 + 8 KB RAM (3.58 MHz)',
+            tag: '4. Zilog Z80 (8 KB RAM) + Yamaha YM2612',
             iconType: 'audio',
-            text: 'CPU auxiliar de 8 bits que trabalha em paralelo comandando os chips de som FM (YM2612) e PSG.'
+            text: 'CPU de 8 bits (3.58 MHz) que comanda os 6 canais FM do YM2612 (canal 6 toca PCM de 8 bits) e os 4 canais do PSG.'
           }
         ],
         insight:
-          'Seg. Copetti: Como o 68000 e o Z80 não podem mexer na memória um do outro ao mesmo tempo, o Árbitro de Barramento organiza a vez de cada um sem travar o jogo.',
+          'Seg. Copetti & Plutiedev: O 68000 precisa pedir o barramento (`$A11100` BusReq) para escrever nos 8 KB do Z80, e o Z80 usa uma janela bancada de 32 KB (`$8000–$FFFF`) para ler amostras PCM direto da memória do 68000!',
         speechSimple:
-          '"No Mega Drive base vemos 4 peças trabalhando juntas: o Motorola 68000 cuida do jogo, a memória de 64 KB tem um Árbitro de Trânsito para evitar colisões, o chip VDP monta a imagem na TV e o Z80 cuida exclusivamente da música!"',
+          '"No Mega Drive base vemos 4 peças trabalhando juntas: o Motorola 68000 cuida do jogo, a memória de 64 KB tem um Árbitro de Trânsito para evitar colisões, o chip VDP monta a imagem na TV (e guarda o gerador PSG lá dentro), e o Z80 comanda o sintetizador FM Yamaha YM2612!"',
         speechTech:
-          '"Na arquitetura base analisada por Copetti, temos 4 blocos: o Motorola 68000 a 7.67 MHz (ALU e bus de 16 bits), os 64 KB de Work RAM com o Árbitro de Barramento, o VDP no Modo V e o Zilog Z80 a 3.58 MHz com 8 KB próprios para o áudio."',
+          '"Na arquitetura base analisada por Copetti e Plutiedev, temos 4 blocos: o Motorola 68000 a 7.67 MHz, os 64 KB de Work RAM com o Árbitro de Barramento e chip I/O, o VDP no Modo V (integrando o PSG SN76489) e o Zilog Z80 a 3.58 MHz com 8 KB próprios comandando o Yamaha YM2612."',
         activeNodes: ['mcd-maincpu', 'mcd-arbiter', 'mcd-vdp', 'mcd-z80'],
         activeBuses: [],
         packets: []
@@ -535,37 +545,37 @@ const ARCHITECTURE_DATA = {
       {
         step: 1,
         shortTitle: 'Sub-CPU 12.5 MHz',
-        title: 'Mega-CD em Ação: Leitor 1x → 2º Motorola 68000 → 512 KB PRG-RAM',
+        title: 'Mega-CD em Ação: Leitor 1x & CDC (LC8951) → 2º Motorola 68000 (12.5 MHz) → 512 KB PRG-RAM',
         summary:
-          'Os 3 blocos da direita entram em ação: o leitor óptico lê o CD a 150 KB/s, entrega os dados pelo barramento para o segundo Motorola 68000 (12.5 MHz) e abastece os 512 KB de memória PRG-RAM.',
+          'Os 3 blocos da direita entram em ação: o leitor óptico lê o CD a 150 KB/s passando pelo controlador CDC Sanyo LC8951 (16 KB cache), entrega à Sub-CPU Motorola 68000 (12.5 MHz + 128 KB BIOS + 8 KB BRAM) e abastece os 512 KB de PRG-RAM.',
         simpleAnalogy:
-          'O Mega-CD traz praticamente um segundo videogame inteiro lá dentro: o leitor de CD entrega os arquivos para um segundo "chefe" 63% mais rápido, que trabalha numa mesa de 512 KB (8 vezes maior que a do Mega Drive)!',
+          'O Mega-CD traz praticamente um segundo videogame inteiro lá dentro: o leitor de CD e seu controlador CDC entregam os arquivos para um segundo "chefe" 63% mais rápido, que trabalha numa mesa de 512 KB (8 vezes maior que a do Mega Drive)!',
         flowSteps: [
           {
             nodeId: 'mcd-drive',
-            tag: '1. CD-ROM (1x CLV — 150 KB/s)',
+            tag: '1. CD-ROM (1x CLV) + CDC Sanyo LC8951 (16 KB)',
             iconType: 'disc',
-            text: 'Lê os setores do disco óptico passando por um cache interno de 16 KB no leitor.'
+            text: 'Lê setores a 150 KB/s; o controlador CDC LC8951 (16 KB buffer) corrige erros e faz DMA p/ PRG-RAM, Word RAM ou PCM.'
           },
           {
             nodeId: 'mcd-subcpu',
-            tag: '2. Sub-CPU: 2º 68000 (12.5 MHz)',
+            tag: '2. Sub-CPU: 2º 68000 (12.5 MHz + BIOS/BRAM)',
             iconType: 'code',
-            text: 'Segundo processador Motorola 68000 (63% mais rápido que o principal); descomprime vídeos e fases em paralelo.'
+            text: 'Segundo Motorola 68000 (63% mais rápido que a base), acompanhado de 128 KB de Sub-BIOS ROM e 8 KB de BRAM p/ saves.'
           },
           {
             nodeId: 'mcd-prgram',
             tag: '3. Program RAM (512 KB PRG-RAM)',
             iconType: 'code',
-            text: 'Memória exclusiva da Sub-CPU (8× maior que a RAM do Mega Drive) onde ficam o código, vídeos FMV e fases.'
+            text: 'Memória exclusiva da Sub-CPU (8× maior que a RAM do Mega Drive) onde rodam o código do Mega-CD, FMV e descompressão.'
           }
         ],
         insight:
-          'Com dois processadores 68000 reais rodando ao mesmo tempo, o Mega-CD podia descompactar vídeos e calcular efeitos enquanto o Mega Drive mantinha o jogo fluido.',
+          'Seg. Plutiedev & RetroReversing: Além dos 512 KB de PRG-RAM, o controlador CDC Sanyo LC8951 pode transferir setores do CD via DMA diretamente para a PRG-RAM, para a Word RAM ou para os 64 KB do chip de som PCM!',
         speechSimple:
-          '"Ao encaixar o Mega-CD, esses 3 blocos da direita entram em ação: vejam a linha laranja subindo do leitor de CD a 150 KB/s direto para o segundo processador 68000 (12.5 MHz), e descendo pela linha verde para guardar tudo nos 512 KB de memória!"',
+          '"Ao encaixar o Mega-CD, esses 3 blocos da direita entram em ação: vejam a linha laranja subindo do leitor de CD e seu controlador CDC a 150 KB/s direto para o segundo processador 68000 (12.5 MHz), e descendo pela linha verde para guardar tudo nos 512 KB de memória!"',
         speechTech:
-          '"No módulo Mega-CD atuam 3 componentes: o leitor 1x CLV transfere dados a 150 KB/s para a Sub-CPU Motorola 68000 a 12.5 MHz, que armazena e descomprime o código e os streams de vídeo nos seus 512 KB de Program RAM exclusiva."',
+          '"No módulo Mega-CD atuam 3 componentes: o leitor 1x CLV com o controlador CDC Sanyo LC8951 (16 KB cache) transfere dados a 150 KB/s para a Sub-CPU Motorola 68000 a 12.5 MHz (com 128 KB BIOS e 8 KB BRAM), abastecendo os 512 KB de Program RAM."',
         activeNodes: ['mcd-drive', 'mcd-subcpu', 'mcd-prgram'],
         activeBuses: ['bus-mcd-cd', 'bus-mcd-prg'],
         packets: [
@@ -573,7 +583,7 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-mcd-cd',
             color: '#f97316',
             type: 'disc',
-            label: '150 KB/s (Dados CD)',
+            label: '150 KB/s (CDC DMA)',
             badgeX: 885,
             badgeY: 132
           },
@@ -590,43 +600,43 @@ const ARCHITECTURE_DATA = {
       {
         step: 2,
         shortTitle: 'ASIC & Word RAM',
-        title: 'Ponte Gráfica Completa: Os 4 Componentes da Rotação e Bank Swap',
+        title: 'Ponte Gate Array & Word RAM: Sub-CPU ↔ ASIC (Rotação + Comm Ports $A12010) ↔ Word RAM ↔ Main-CPU',
         summary:
-          'Aqui 4 componentes funcionam em sequência: a Sub-CPU comanda a cena, o ASIC gira e fatia a imagem em blocos 8×8, a Word RAM faz a troca de bancada (Bank Swap) e o 68000 principal recebe a imagem pronta!',
+          'Aqui 4 componentes trabalham em conjunto: o Main-CPU e a Sub-CPU trocam comandos pelos 16 registradores do Gate Array (`$A12010–$A1202E` + `IRQ2`), o ASIC aplica rotação/escala nos gráficos e a Word RAM (256 KB) faz o Bank Swap para o Mega Drive!',
         simpleAnalogy:
-          'Como os dois processadores não podem mexer na mesma mesa juntos, eles usam 4 etapas: o 2º 68000 manda o desenho para o chip ASIC girar na Bancada A da Word RAM, enquanto o 1º 68000 do Mega Drive lê a Bancada B já pronta!',
+          'Como os dois processadores não podem mexer na mesma mesa juntos, eles conversam por um interfone de 16 portas (Comm Ports no Gate Array) e usam uma bancada giratória (Word RAM): enquanto o ASIC gira a imagem no Lado A, o Mega Drive lê o Lado B pronto!',
         flowSteps: [
           {
             nodeId: 'mcd-subcpu',
             tag: '1. Sub-CPU: 2º 68000 (12.5 MHz)',
             iconType: 'code',
-            text: 'Envia os gráficos vindos do CD e os parâmetros de ângulo, zoom e perspectiva para o chip ASIC.'
+            text: 'Envia parâmetros de rotação/zoom para o ASIC e sinaliza status nos registradores `$FF8020–$FF802E`.'
           },
           {
             nodeId: 'mcd-asic',
-            tag: '2. ASIC Gráfico (Rotação e Escala)',
+            tag: '2. Gate Array / ASIC (Rotação + Comm Ports)',
             iconType: 'image',
-            text: 'Calcula a rotação/zoom por hardware (estilo Mode 7) e já converte o desenho em blocos (Tiles 8×8).'
+            text: 'Contém as 16 portas de comunicação (`$A12010–$A1202E` + `IRQ2`) e o motor gráfico que gira bitmaps e já converte em Tiles 8×8.'
           },
           {
             nodeId: 'mcd-wordram',
-            tag: '3. Word RAM (256 KB — Bank Swap)',
+            tag: '3. Word RAM (256 KB — Modo 2M ou 1M/1M)',
             iconType: 'image',
-            text: 'Dividida em 2 bancos de 128 KB (1M/1M): enquanto o ASIC desenha no Banco A, o Banco B é chaveado para o Mega Drive.'
+            text: 'Opera como 1 bloco de 256 KB (Modo 2M) ou 2 bancos de 128 KB (Modo 1M/1M) que alternam instantaneamente (Bank Swap).'
           },
           {
             nodeId: 'mcd-maincpu',
             tag: '4. Main-CPU: Motorola 68000 (7.67 MHz)',
             iconType: 'image',
-            text: 'Recebe instantaneamente o banco da Word RAM com a imagem já rotacionada e pronta para enviar ao vídeo!'
+            text: 'Dispara interrupções `IRQ2` (`$A12000`) para a Sub-CPU e recebe na janela `$600000` o banco da Word RAM já convertido em tiles!'
           }
         ],
         insight:
-          'Os dois processadores 68000 não têm um fio direto entre si: toda entrega de gráficos do Mega-CD para o Mega Drive acontece passando por esses 4 componentes na ponte Word RAM.',
+          'Seg. Plutiedev (Using the Sub-CPU): As duas CPUs 68000 sincronizam tarefas usando 8 portas de comando (`$A12010–$A1201E`), 8 portas de status (`$A12020–$A1202E`) e a interrupção `IRQ2` dentro do Gate Array ASIC, enquanto trocam gráficos pesados via Bank Swap na Word RAM!',
         speechSimple:
-          '"Vejam os 4 blocos conectados em sequência: 1º, a Sub-CPU manda a imagem para o chip ASIC; 2º, o ASIC gira a imagem e fatia em blocos; 3º, a memória Word RAM gira a bancada (Bank Swap); e 4º, a linha rosa leva o desenho pronto direto para o processador do Mega Drive!"',
+          '"Vejam os 4 blocos conectados na ponte central: os dois processadores conversam pelas portas de comando do chip Gate Array ASIC, o ASIC gira a imagem e fatia em blocos 8×8, a memória Word RAM gira a bancada (Bank Swap) e entrega o desenho pronto para o Mega Drive!"',
         speechTech:
-          '"Neste passo operam 4 componentes em cadeia: a Sub-CPU 68000 comanda o ASIC Gráfico, que aplica transformações afins (rotação/escala) e converte bitmaps em tiles 8×8 dentro da Word RAM (256 KB). Ao concluir o quadro, ocorre o Bank Swap entregando o banco pronto para o Main-CPU 68000."',
+          '"Neste passo operam 4 componentes segundo Plutiedev: Main-CPU e Sub-CPU sincronizam comandos via 16 registradores de comunicação (`$A12010–$A1202E`) e `IRQ2` no Gate Array ASIC. O ASIC aplica transformações afins e converte bitmaps em tiles 8×8 na Word RAM (256 KB), que faz Bank Swap para a janela `$600000` do Main-CPU."',
         activeNodes: ['mcd-subcpu', 'mcd-asic', 'mcd-wordram', 'mcd-maincpu'],
         activeBuses: ['bus-mcd-sub-asic', 'bus-mcd-asic-word', 'bus-mcd-main-word'],
         packets: [
@@ -634,7 +644,7 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-mcd-sub-asic',
             color: '#a855f7',
             type: 'code',
-            label: '1. Comando Sub-CPU',
+            label: '1. Comm Ports + ASIC',
             badgeX: 580,
             badgeY: 112
           },
@@ -642,7 +652,7 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-mcd-asic-word',
             color: '#a855f7',
             type: 'image',
-            label: '2. Rotação & Escala',
+            label: '2. Rotação -> Tiles 8x8',
             badgeX: 461,
             badgeY: 220
           },
@@ -650,7 +660,7 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-mcd-main-word',
             color: '#ec4899',
             type: 'image',
-            label: '3. Bank Swap Pronto',
+            label: '3. Bank Swap ($600000)',
             badgeX: 335,
             badgeY: 312
           }
@@ -659,44 +669,44 @@ const ARCHITECTURE_DATA = {
       {
         step: 3,
         shortTitle: 'VDP & 3 Memórias',
-        title: 'Transferência para a TV: Word RAM → Main-CPU → VDP (VRAM, CRAM e VSRAM)',
+        title: 'Transferência DMA para a TV: Word RAM → Main-CPU & Árbitro → VDP (VRAM, CRAM e VSRAM)',
         summary:
-          'Os gráficos prontos saem da Word RAM, passam pelo barramento do 68000 principal e descem pelo DMA do VDP para abastecer suas três memórias internas de vídeo (VRAM, CRAM e VSRAM).',
+          'Aqui 4 blocos trabalham juntos: os tiles saem da Word RAM, o 68000 programa os 5 registradores de DMA, o Árbitro pausa o 68000 (e o Z80) e o DMA do VDP puxa os gráficos para suas 3 memórias internas (64 KB VRAM, 128 B CRAM e 80 B VSRAM).',
         simpleAnalogy:
-          'A imagem sai da bancada giratória (Word RAM), passa pelo comando do chefe (68000) e entra nas 3 gavetas do chip de vídeo (VDP): uma para os desenhos (64 KB), uma para 64 cores (CRAM) e outra para rolar a tela (VSRAM).',
+          'A imagem sai da bancada giratória (Word RAM), o chefe (68000) aciona o trem expresso (DMA) enquanto o guarda (Árbitro) segura o trânsito, e os desenhos entram nas 3 gavetas do vídeo (VDP): 64 KB de desenhos, 64 cores e rolagem da tela.',
         flowSteps: [
           {
             nodeId: 'mcd-wordram',
-            tag: '1. Word RAM (256 KB)',
+            tag: '1. Word RAM (256 KB — Janela $600000)',
             iconType: 'image',
-            text: 'Disponibiliza para o Mega Drive o banco de 128 KB com os gráficos e tiles 8×8 já prontos.'
+            text: 'Fornece os blocos gráficos (tiles 8×8) já descompactados ou rotacionados pelo Mega-CD.'
           },
           {
             nodeId: 'mcd-maincpu',
-            tag: '2. Main-CPU: Motorola 68000',
+            tag: '2. Main-CPU: Motorola 68000 (Setup DMA)',
             iconType: 'code',
-            text: 'Aciona a transferência rápida (DMA) durante o intervalo vertical da tela (V-Blank).'
+            text: 'Programa origem e tamanho nos registradores `$9300–$9700` do VDP durante o intervalo vertical (V-Blank).'
+          },
+          {
+            nodeId: 'mcd-arbiter',
+            tag: '3. Árbitro de Bus (Pausa 68000 e Z80 no DMA)',
+            iconType: 'code',
+            text: 'Seg. Plutiedev: Pausa o Z80 (`$A11100`) e o 68000 durante o DMA para evitar corrupção gráfica no barramento.'
           },
           {
             nodeId: 'mcd-vdp',
-            tag: '3. VDP — 64 KB VRAM (Desenhos)',
+            tag: '4. VDP: 64 KB VRAM + 128 B CRAM + 80 B VSRAM',
             iconType: 'image',
-            text: 'O DMA do VDP puxa os tiles da Word RAM e monta os 4 planos (Plano B, Plano A, Janela e 80 Sprites).'
-          },
-          {
-            nodeId: 'mcd-vdp',
-            tag: '4. VDP — 128 B CRAM & 80 B VSRAM',
-            iconType: 'image',
-            text: 'Aplica as 64 cores simultâneas guardadas na CRAM e calcula a rolagem vertical de cada coluna na VSRAM.'
+            text: 'Copia até 205 bytes/linha no V-Blank para os 4 planos na VRAM, aplica 64 cores na CRAM (183 tons c/ Sombra/Brilho) e scroll na VSRAM.'
           }
         ],
         insight:
-          'Seg. Copetti: Enquanto o DMA do VDP copia gráficos para a VRAM, o 68000 fica pausado. E com os modos Sombra/Brilho (Shadow & Highlight), as 64 cores da CRAM chegavam a 183 tons!',
+          'Seg. Copetti & Plutiedev: Durante o DMA para o VDP, o 68000 fica pausado e o Z80 também deve ser pausado (`FastPauseZ80`) para não colidir no barramento principal!',
         speechSimple:
-          '"Aqui vemos o caminho final da imagem: ela sai da Word RAM pela linha rosa até o 68000, e desce pela linha azul (DMA) direto até o chip de vídeo VDP, preenchendo suas 3 memórias internas: 64 KB de desenhos, 64 cores e rolagem da tela!"',
+          '"Aqui vemos o caminho final da imagem passando por 4 blocos: ela sai da Word RAM até o 68000, o Árbitro segura o trânsito das CPUs e a linha azul (DMA) leva tudo direto ao chip VDP, preenchendo suas 3 memórias internas: 64 KB de desenhos, 64 cores e rolagem da tela!"',
         speechTech:
-          '"O fluxo gráfico final envolve a Word RAM, o 68000 principal e as 3 memórias internas do VDP detalhadas por Copetti: o DMA dedicado do VDP pausa o 68000 para copiar os tiles da Word RAM para os 64 KB de VRAM, combinando-os com as 4 paletas da CRAM (128 B) e o scroll vertical da VSRAM (80 B)."',
-        activeNodes: ['mcd-wordram', 'mcd-maincpu', 'mcd-vdp'],
+          '"O fluxo gráfico final envolve 4 componentes segundo Copetti e Plutiedev: a Word RAM entrega os tiles em `$600000`, o 68000 configura o DMA do VDP, o Árbitro pausa o 68000 e o Z80 para evitar contenção de bus, e o VDP preenche os 64 KB de VRAM, 128 B de CRAM (64 cores) e 80 B de VSRAM."',
+        activeNodes: ['mcd-wordram', 'mcd-maincpu', 'mcd-arbiter', 'mcd-vdp'],
         activeBuses: ['bus-mcd-main-word', 'bus-mcd-vdp'],
         packets: [
           {
@@ -711,7 +721,7 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-mcd-vdp',
             color: '#38bdf8',
             type: 'image',
-            label: '2. DMA -> 64KB Vídeo',
+            label: '2. DMA -> VRAM/CRAM',
             badgeX: 255,
             badgeY: 312
           }
@@ -720,53 +730,67 @@ const ARCHITECTURE_DATA = {
       {
         step: 4,
         shortTitle: 'Som FM + PCM',
-        title: 'Orquestra Completa: Os 4 Componentes de Áudio (Árbitro → Z80 + CD → Ricoh PCM)',
+        title: 'Orquestra Completa (5 Blocos): Árbitro ↔ Z80 (YM2612 + PSG) e Sub-CPU + CD → Ricoh PCM',
         summary:
-          'Neste passo 4 blocos trabalham juntos: o Árbitro libera os comandos para o Z80 tocar o sintetizador FM (YM2612), enquanto no Mega-CD o leitor envia o som do CD e o chip Ricoh toca 8 canais PCM.',
+          'Neste passo 5 blocos trabalham juntos: no Mega Drive, o Árbitro coordena o Z80 para tocar o Yamaha YM2612 (6ch FM) e o PSG; no Mega-CD, a Sub-CPU abastece os 64 KB do chip Ricoh RF5C164 (8ch PCM) e o leitor envia música CD-DA!',
         simpleAnalogy:
-          'Os 4 blocos fazem uma orquestra completa: o Árbitro entrega os pedidos para o maestro Z80 tocar o som clássico do Mega Drive, o leitor toca a música do CD e o chip Ricoh PCM toca instrumentos gravados (e até cobre a pausa do laser em Sonic CD!).',
+          'Cinco peças formam uma orquestra completa: na esquerda, o Árbitro e o maestro Z80 tocam o som clássico do Mega Drive; na direita, a Sub-CPU alimenta o chip Ricoh de 8 canais gravados (PCM) e o leitor toca a música do CD!',
         flowSteps: [
           {
             nodeId: 'mcd-arbiter',
-            tag: '1. 64 KB RAM + Árbitro de Bus',
+            tag: '1. 64 KB RAM + Árbitro (`$A11100` / Bank 32 KB)',
             iconType: 'code',
-            text: 'Coordena a passagem de comandos de efeitos sonoros da CPU principal para a memória do Z80 sem colisão.'
+            text: 'Gerencia o acesso do 68000 aos 8 KB do Z80 e permite ao Z80 ler samples na janela bancada de 32 KB (`$8000–$FFFF`).'
           },
           {
             nodeId: 'mcd-z80',
-            tag: '2. Zilog Z80 + 8 KB RAM (FM + PSG)',
+            tag: '2. Zilog Z80 (8 KB) → YM2612 (6ch FM) + PSG (4ch)',
             iconType: 'audio',
-            text: 'Rege de forma autônoma os 6 canais FM do Yamaha YM2612 e os 4 canais PSG no Mega Drive.'
+            text: 'Rege no barramento Z80 o sintetizador FM Yamaha YM2612 (`$4000`) e o gerador SN76489 PSG (integrado no VDP).'
+          },
+          {
+            nodeId: 'mcd-subcpu',
+            tag: '3. Sub-CPU 68000 (12.5 MHz → Controle PCM)',
+            iconType: 'code',
+            text: 'Carrega as amostras digitais de áudio nos 64 KB de Wave RAM e dispara as notas dos 8 canais do chip Ricoh.'
           },
           {
             nodeId: 'mcd-drive',
-            tag: '3. CD-ROM (1x — Música CD-DA)',
+            tag: '4. CD-ROM (1x — Streaming Red Book CD-DA)',
             iconType: 'disc',
-            text: 'Envia a trilha sonora de CD (e nos loops, o chip PCM cobria o meio segundo que o laser 1x levava para voltar!).'
+            text: 'Envia a trilha sonora estéreo direto do CD (e nos loops, o chip PCM cobria o tempo de busca do laser 1x!).'
           },
           {
             nodeId: 'mcd-pcm',
-            tag: '4. Áudio Mega-CD: Ricoh RF5C164 (8ch PCM)',
+            tag: '5. Áudio Mega-CD: Ricoh RF5C164 (8ch PCM + 64 KB)',
             iconType: 'audio',
-            text: 'Reproduz 8 canais de samples digitais (bateria, guitarra, vozes) usando 64 KB de Wave RAM própria.'
+            text: 'Reproduz 8 canais de samples digitais (até 32 kHz) nos seus 64 KB de Wave RAM e mixa com o áudio CD-DA e o som base.'
           }
         ],
         insight:
-          'Seg. Copetti (Bônus Som do Mega-CD): Como o leitor 1x demorava para reposicionar o laser ao repetir uma música do CD, Sonic CD usava o chip Ricoh PCM para tocar um preenchimento e esconder o silêncio!',
+          'Seg. Copetti (Bônus Som do Mega-CD): Como o leitor 1x demorava para reposicionar o laser ao repetir uma faixa do CD, Sonic CD usava a Sub-CPU e o chip Ricoh PCM para tocar um preenchimento e esconder o silêncio!',
         speechSimple:
-          '"Olhem os 4 componentes de som funcionando ao mesmo tempo: na esquerda, a linha amarela leva os comandos do Árbitro até o chip Z80 tocar o som FM do Mega Drive; na direita, a linha verde desce do leitor de CD até o chip Ricoh de 8 canais digitais!"',
+          '"Olhem os 5 componentes de som funcionando ao mesmo tempo: na esquerda, a linha amarela liga o Árbitro ao chip Z80 para tocar o som FM do Mega Drive; na direita, a Sub-CPU alimenta os 64 KB de amostras do chip Ricoh PCM enquanto o leitor de CD manda a música de estúdio!"',
         speechTech:
-          '"Os 4 blocos ativos somam 18 canais mais CD-DA: na base, o Árbitro de Barramento sincroniza o envio ao Z80 (8 KB RAM), que comanda o YM2612 (6ch FM) e o SN76489 (4ch PSG); no Mega-CD, o Ricoh RF5C164 adiciona 8 canais PCM (64 KB) mixados ao streaming CD-DA vindo do leitor 1x."',
-        activeNodes: ['mcd-arbiter', 'mcd-z80', 'mcd-drive', 'mcd-pcm'],
-        activeBuses: ['bus-mcd-z80', 'bus-mcd-pcm'],
+          '"Os 5 blocos ativos somam 18 canais mais CD-DA: na base, o Árbitro sincroniza o Z80 (8 KB RAM + janela de 32 KB), que comanda o YM2612 (6ch FM) e o SN76489 (4ch PSG); no Mega-CD, a Sub-CPU 68000 alimenta o Ricoh RF5C164 (8ch PCM com 64 KB Wave RAM), mixado ao streaming CD-DA vindo do leitor 1x."',
+        activeNodes: ['mcd-arbiter', 'mcd-z80', 'mcd-subcpu', 'mcd-drive', 'mcd-pcm'],
+        activeBuses: ['bus-mcd-z80', 'bus-mcd-sub-pcm', 'bus-mcd-pcm'],
         packets: [
           {
             pathId: 'path-mcd-z80',
             color: '#f59e0b',
             type: 'audio',
-            label: 'Árbitro -> Z80 FM',
+            label: 'Árbitro <-> Z80 FM',
             badgeX: 115,
             badgeY: 428
+          },
+          {
+            pathId: 'path-mcd-sub-pcm',
+            color: '#ec4899',
+            type: 'audio',
+            label: 'Sub-CPU -> 64KB PCM',
+            badgeX: 700,
+            badgeY: 358
           },
           {
             pathId: 'path-mcd-pcm',
@@ -788,157 +812,157 @@ const ARCHITECTURE_DATA = {
         category: 'cpu',
         simpleRole: 'O processador principal do Mega Drive: controla os comandos do jogador, a física e a partida.',
         metrics: [
-          { label: 'Clock', value: '7.67 MHz' },
+          { label: 'Clock', value: '7.67 MHz (NTSC) / 7.60 MHz (PAL)' },
           { label: 'Interno', value: 'Regs 32-bit / ALU 16-bit' },
-          { label: 'Barramento', value: 'Dados 16-bit / Addr 24-bit' },
-          { label: 'Alcance', value: 'Até 16 MB de memória' }
+          { label: 'Barramento', value: 'Dados 16-bit / Addr 24-bit (16 MB)' },
+          { label: 'Segurança / I/O', value: 'Chip I/O 315-5309 + TMSS' }
         ],
         detail:
-          'Seg. Copetti: Processador híbrido 16/32 bits da Motorola. Seus registradores internos são de 32 bits, enquanto sua unidade aritmética (ALU) e seu barramento de dados operam em 16 bits.'
+          'Seg. Copetti & RetroReversing: Processador híbrido 16/32 bits da Motorola. Possui registradores de 32 bits com conjunto de instruções ortogonal, enquanto sua ALU e seu barramento externo de dados operam em 16 bits (endereçando até 16 MB em 24 bits).'
       },
       {
         id: 'mcd-arbiter',
-        title: '64 KB RAM + Árbitro de Bus',
-        spec: 'Work RAM 68k + Bus Arbiter',
-        subSpec: 'Coordena acesso 68000 ↔ Z80',
+        title: '64 KB RAM + Árbitro de Bus & I/O',
+        spec: 'Work RAM 68k + Bus Arbiter + I/O',
+        subSpec: 'BusReq ($A11100) + Bank 32KB Z80',
         category: 'ram',
-        simpleRole: 'A memória de 64 KB do Mega Drive junto com o "guarda de trânsito" que impede colisões entre as CPUs.',
+        simpleRole: 'A memória de 64 KB do Mega Drive junto com o "guarda de trânsito" que impede colisões entre o 68000, o Z80 e o DMA.',
         metrics: [
-          { label: 'Work RAM', value: '64 KB DRAM (68000)' },
-          { label: 'Controle', value: 'Árbitro de Barramento' },
-          { label: 'Função', value: 'Evita colisão 68000 / Z80' },
-          { label: 'No DMA', value: 'Pausa a CPU durante cópia VDP' }
+          { label: 'Work RAM', value: '64 KB DRAM ($FF0000–$FFFFFF)' },
+          { label: 'Z80 BusReq', value: 'Registradores $A11100 / $A11200' },
+          { label: 'Janela do Z80', value: '32 KB Bank ($8000–$FFFF no Z80)' },
+          { label: 'Portas I/O', value: 'Chip 315-5309 ($A10001–$A1001F)' }
         ],
         detail:
-          'Seg. Copetti: Como o 68000 e o Z80 não podem acessar o barramento um do outro ao mesmo tempo, o Árbitro de Barramento pausa uma CPU enquanto a outra lê ou escreve.'
+          'Seg. Copetti & Plutiedev: Coordena o compartilhamento do barramento principal. O 68000 solicita o bus do Z80 (`$A11100`) para escrever nos 8 KB do Z80, enquanto o Z80 pode ler qualquer banco de 32 KB do barramento do 68000 (pausando o 68000 brevemente a cada byte lido). Durante o DMA do VDP, pausa o 68000.'
       },
       {
         id: 'mcd-vdp',
-        title: 'VDP (Modo V + DMA)',
+        title: 'VDP (Modo V + DMA + PSG)',
         spec: '64KB VRAM + 128B CRAM + 80B VSRAM',
-        subSpec: 'Tiles 8×8 • 4 Planos • 64 Cores',
+        subSpec: 'Tiles 8×8 • 4 Planos • Integra SN76489 PSG',
         category: 'gpu',
-        simpleRole: 'O chip de vídeo do Mega Drive: monta 4 camadas de cenário/personagens e pinta até 64 cores na TV.',
+        simpleRole: 'O chip de vídeo do Mega Drive: monta 4 camadas de cenário/personagens, pinta até 64 cores (183 tons) e ainda abriga o chip de som PSG.',
         metrics: [
-          { label: 'VRAM (Desenhos)', value: '64 KB (Planos A, B, W e Sprites)' },
-          { label: 'CRAM (Cores)', value: '128 Bytes (64 de 512 cores)' },
-          { label: 'VSRAM (Scroll)', value: '80 Bytes (Rolagem Vertical)' },
-          { label: 'Sprites', value: 'Até 80 na tela (20 por linha)' }
+          { label: 'VRAM (Desenhos)', value: '64 KB (Planos A, B, W e 80 Sprites)' },
+          { label: 'CRAM (Cores)', value: '128 B (64 de 512 cores / 183 S&H)' },
+          { label: 'VSRAM (Scroll)', value: '80 B (20 seções de rolagem vertical)' },
+          { label: 'Áudio Embutido', value: 'Integra o chip SN76489 PSG (4ch)' }
         ],
         detail:
-          'Seg. Copetti: Opera a ~13.4 MHz renderizando 2 planos de cenário, 1 plano Janela e até 80 sprites, com unidade de DMA própria para puxar gráficos rápido da memória.'
+          'Seg. Copetti & Plutiedev: Opera a ~13.4 MHz renderizando 2 planos de fundo roláveis (Plane A e Plane B), 1 plano fixo (Window) e até 80 sprites (20 por linha), com unidade de DMA de 3 modos (68k→VDP, VRAM Fill e VRAM Copy) e o gerador de som SN76489 PSG integrado na mesma pastilha.'
       },
       {
         id: 'mcd-z80',
-        title: 'Zilog Z80 + 8 KB RAM',
-        spec: '~3.58 MHz • ALU 4-bit',
-        subSpec: 'Comanda YM2612 (FM) + SN76489',
+        title: 'Zilog Z80 (8 KB) + Yamaha YM2612',
+        spec: '~3.58 MHz • Bus de Áudio Dedicado',
+        subSpec: 'YM2612 (6ch FM / PCM) + SN76489 (4ch PSG)',
         category: 'audio',
-        simpleRole: 'O processador auxiliar dedicado à música: trabalha sozinho regendo os chips de som.',
+        simpleRole: 'O processador auxiliar dedicado à música: trabalha sozinho regendo o sintetizador FM Yamaha YM2612 e o PSG.',
         metrics: [
-          { label: 'Clock', value: '3.58 MHz' },
-          { label: 'Arquitetura', value: 'Regs 8-bit / ALU 4-bit' },
-          { label: 'Memória Som', value: '8 KB Dedicados' },
-          { label: 'Chips de Som', value: 'YM2612 (6ch FM) + PSG (4ch)' }
+          { label: 'CPU de Áudio', value: 'Zilog Z80 @ 3.58 MHz (ALU 4-bit)' },
+          { label: 'RAM do Z80', value: '8 KB SRAM ($A00000 no 68k)' },
+          { label: 'Sintetizador FM', value: 'Yamaha YM2612 (6 Canais × 4 Op.)' },
+          { label: 'Canal 6 DAC + PSG', value: 'Ch6 8-bit PCM + 4ch SN76489 PSG' }
         ],
         detail:
-          'Seg. Copetti: Roda o programa de música a partir de seus 8 KB de RAM, disparando notas no sintetizador FM Yamaha YM2612 e no PSG sem ocupar o Motorola 68000.'
+          'Seg. Copetti & Plutiedev: O Yamaha YM2612 reside fisicamente no barramento do Z80 (`$4000–$4003` no Z80 / `$A04000` no 68k). O Z80 executa o driver musical (como o GEMS) nos seus 8 KB de RAM, disparando notas FM, amostras PCM de 8 bits no Canal 6 do YM2612 e efeitos nos 4 canais do PSG.'
       },
       {
         id: 'mcd-asic',
-        title: 'ASIC Gráfico (Mega-CD)',
-        spec: 'Rotação e Escala por Hardware',
-        subSpec: 'Converte Imagem → Tiles 8×8 VDP',
+        title: 'Gate Array / ASIC (315-5477)',
+        spec: 'Rotação/Escala + 16 Comm Ports',
+        subSpec: 'Regs $A12000–$A1202E + IRQ2 + Tiles 8×8',
         category: 'gpu',
-        simpleRole: 'Chip especial do Mega-CD que gira imagens e cria pistas 3D (efeito que o Mega Drive sozinho não tinha).',
+        simpleRole: 'Chip especial do Mega-CD que gira imagens em 3D (estilo Mode 7), converte em blocos pro VDP e contém as 16 portas de conversa entre as CPUs.',
         metrics: [
-          { label: 'Chip', value: 'Sega Custom ASIC' },
-          { label: 'Efeitos', value: 'Rotação, Zoom e Perspectiva' },
-          { label: 'Conversão', value: 'Imagem → Blocos 8×8 do VDP' },
-          { label: 'Onde Atua', value: 'Trabalha direto na Word RAM' }
+          { label: 'Chip Custom', value: 'Sega Gate Array ASIC (315-5477)' },
+          { label: 'Comm Ports', value: '8 Cmd ($A12010) + 8 Status ($A12020)' },
+          { label: 'Efeitos Gráficos', value: 'Rotação, Escala e Perspectiva Afim' },
+          { label: 'Saída Formatada', value: 'Converte Stamp Map → Tiles 8×8 VDP' }
         ],
         detail:
-          'Supre a falta de rotação e escala no Mega Drive original. Calcula a transformação na Word RAM e já entrega o desenho fatiado em blocos de 8×8 prontos para o VDP.'
+          'Seg. Plutiedev & Copetti: O Gate Array (ASIC) do Mega-CD cumpre duas funções vitais: (1) fornece os registradores de controle (`$A12000`), interrupção `IRQ2` e as 16 portas de 16 bits (`$A12010–$A1202E`) para comunicação entre os dois 68000; e (2) realiza rotação e escala por hardware na Word RAM já entregando o resultado fatiado em tiles 8×8 para o VDP.'
       },
       {
         id: 'mcd-wordram',
         title: 'Word RAM Compartilhada',
-        spec: '256 KB Dual-Bank',
-        subSpec: 'Modo 2M (256KB) ou 1M/1M (2× 128KB)',
+        spec: '256 KB DRAM Dual-Bank ($600000)',
+        subSpec: 'Modo 2M (256KB) ou 1M/1M (2× 128KB Swap)',
         category: 'ram',
-        simpleRole: 'As duas bancadas giratórias de 128 KB onde o Mega-CD deixa os gráficos prontos e o Mega Drive pega sem fila.',
+        simpleRole: 'As duas bancadas giratórias de 128 KB onde o Mega-CD deixa os gráficos prontos e o Mega Drive pega instantaneamente sem fila.',
         metrics: [
-          { label: 'Capacidade', value: '256 KB DRAM' },
-          { label: 'Modo 2M', value: '1 Bloco único de 256 KB' },
-          { label: 'Modo 1M / 1M', value: '2 Bancos de 128 KB (Swap)' },
-          { label: 'Função', value: 'Ponte Mega-CD ↔ Mega Drive' }
+          { label: 'Capacidade', value: '256 KB DRAM (Mapeada em $600000)' },
+          { label: 'Modo 2M', value: '1 Bloco único de 256 KB (1 CPU por vez)' },
+          { label: 'Modo 1M / 1M', value: '2 Bancos de 128 KB (Bank Swap)' },
+          { label: 'Controle', value: 'Reg. $A12002 (CdMemCtrl)' }
         ],
         detail:
-          'Ponte gráfica entre o Mega-CD e o Mega Drive. No modo 1M/1M, um processador desenha em um banco de 128 KB enquanto o outro lê o segundo banco sem espera.'
+          'Seg. Plutiedev: Ponte de memória entre o Mega-CD e o Mega Drive controlada pelo registrador `$A12002`. No modo 1M/1M, a Sub-CPU/ASIC renderiza em um banco de 128 KB enquanto o Main-CPU envia o outro banco de 128 KB via DMA para o VDP.'
       },
       {
         id: 'mcd-subcpu',
-        title: 'Sub-CPU: 2º Motorola 68000',
-        spec: '12.5 MHz CISC (Mega-CD)',
-        subSpec: '63% mais rápido que a CPU Base',
+        title: 'Sub-CPU: 2º 68000 + BIOS/BRAM',
+        spec: '12.5 MHz CISC + 128KB BIOS + 8KB BRAM',
+        subSpec: '63% mais rápido • Controla CDC, ASIC e PCM',
         category: 'cpu',
-        simpleRole: 'O segundo cérebro completo que vive dentro do Mega-CD: é 63% mais rápido que o do Mega Drive!',
+        simpleRole: 'O segundo cérebro completo que vive dentro do Mega-CD: é 63% mais rápido que o do Mega Drive e traz BIOS e memória de Save!',
         metrics: [
-          { label: 'Clock', value: '12.5 MHz' },
-          { label: 'Ganho', value: '+63% mais rápido que a base' },
-          { label: 'RAM Própria', value: '512 KB Program RAM' },
-          { label: 'Funções', value: 'Controla CD, Vídeos e ASIC' }
+          { label: 'Clock', value: '12.5 MHz (+63% mais rápido que a base)' },
+          { label: 'Sub-BIOS ROM', value: '128 KB Boot ROM ($400000)' },
+          { label: 'Backup RAM', value: '8 KB BRAM Interna p/ Saves' },
+          { label: 'Interrupções', value: 'Recebe IRQ2 do Main-CPU ($A12000)' }
         ],
         detail:
-          'Segundo processador Motorola 68000 completo localizado dentro do Mega-CD. Descomprime vídeos, controla o leitor de CD e comanda o chip gráfico ASIC.'
+          'Seg. Plutiedev & Copetti: Segundo processador Motorola 68000 completo operando a 12.5 MHz. Possui acesso exclusivo aos 512 KB de PRG-RAM, à BIOS de 128 KB, aos 8 KB de BRAM para salvar jogos, ao controlador de CD (CDC LC8951) e ao chip de áudio Ricoh PCM.'
       },
       {
         id: 'mcd-prgram',
         title: 'Program RAM (PRG-RAM)',
-        spec: '512 KB DRAM Exclusiva',
+        spec: '512 KB DRAM Exclusiva (4× 128 KB)',
         subSpec: 'Memória da Sub-CPU de 12.5 MHz',
         category: 'ram',
         simpleRole: 'A mesa de trabalho gigante de 512 KB exclusiva do Mega-CD (8 vezes maior que a do Mega Drive).',
         metrics: [
-          { label: 'Capacidade', value: '512 KB DRAM' },
-          { label: 'Dono', value: 'Sub-CPU 68000 (12.5 MHz)' },
-          { label: 'Comparação', value: '8× maior que a RAM base' },
-          { label: 'Uso', value: 'Código do jogo, Vídeo e Som' }
+          { label: 'Capacidade', value: '512 KB DRAM (8× maior que a base)' },
+          { label: 'Janela Main-CPU', value: '128 KB paginados em $420000' },
+          { label: 'Acesso CDC DMA', value: 'Recebe setores direto do chip LC8951' },
+          { label: 'Uso Principal', value: 'Código Sub-CPU, Buffer FMV e Áudio' }
         ],
         detail:
-          'Memória principal do módulo Mega-CD. É 8 vezes maior que os 64 KB do Mega Drive original, guardando fases inteiras e quadros de vídeo vindos do CD.'
+          'Seg. Plutiedev: Memória principal da Sub-CPU de 12.5 MHz. Quando a Sub-CPU está em BusReq, o Main-CPU também pode acessar a PRG-RAM através de uma janela bancada de 128 KB no endereço `$420000`.'
       },
       {
         id: 'mcd-drive',
-        title: 'Leitor CD-ROM (1x CLV)',
-        spec: '150 KB/s + 16 KB Cache',
-        subSpec: 'Dados + Música de CD (CD-DA)',
+        title: 'CD-ROM (1x) + CDC Sanyo LC8951',
+        spec: '150 KB/s + CDC 16 KB Cache Buffer',
+        subSpec: 'DMA p/ PRG-RAM, Word RAM ou PCM + CD-DA',
         category: 'cd',
-        simpleRole: 'O leitor óptico que lê 500 a 650 MB de fases, aberturas em vídeo e músicas de estúdio.',
+        simpleRole: 'O leitor óptico de 650 MB acompanhado do chip controlador CDC Sanyo LC8951 que distribui os dados sem pesar na CPU.',
         metrics: [
-          { label: 'Velocidade', value: '1x (150 KB por segundo)' },
-          { label: 'Cache Local', value: '16 KB no leitor' },
-          { label: 'Capacidade', value: '500 MB – 650 MB' },
-          { label: 'Áudio Óptico', value: 'Música Estéreo de CD' }
+          { label: 'Velocidade', value: '1x CLV (150 KB por segundo)' },
+          { label: 'Controlador CDC', value: 'Sanyo LC8951 + 16 KB Buffer SRAM' },
+          { label: 'Destinos DMA CDC', value: 'PRG-RAM, Word RAM ou PCM Wave RAM' },
+          { label: 'Áudio Óptico', value: 'Streaming Red Book CD-DA Estéreo' }
         ],
         detail:
-          'Seg. Copetti: Leitor óptico de 1x controlado pela Sub-CPU. Em loops de música de CD, jogos como Sonic CD usavam o chip PCM para disfarçar o tempo de retorno do laser.'
+          'Seg. Copetti & RetroReversing: A unidade óptica de 1x é gerenciada pelo controlador Sanyo LC8951 (CDC) com 16 KB de cache para correção de erros EDC/ECC, capaz de transferir setores por DMA diretamente para a PRG-RAM, Word RAM ou PCM RAM.'
       },
       {
         id: 'mcd-pcm',
-        title: 'Áudio: Ricoh RF5C164 + FM',
-        spec: '8ch PCM (64 KB) + YM2612',
-        subSpec: 'Total: 18 Canais + Música de CD',
+        title: 'Áudio Mega-CD: Ricoh RF5C164',
+        spec: '8 Canais PCM + 64 KB Wave RAM',
+        subSpec: 'Controlado pela Sub-CPU + Mixagem CD-DA',
         category: 'audio',
-        simpleRole: 'Adiciona 8 canais de som gravado (bateria, guitarra, vozes) com 64 KB próprios, além da música do CD.',
+        simpleRole: 'Chip de som digital do Mega-CD com 8 canais e 64 KB próprios para tocar instrumentos gravados, vozes e cobrir loops do CD.',
         metrics: [
-          { label: 'Chip Mega-CD', value: 'Ricoh RF5C164 (8 canais PCM)' },
-          { label: 'Memória Som', value: '64 KB Wave RAM' },
-          { label: 'Chips Base', value: 'YM2612 (6 FM) + PSG (4ch)' },
-          { label: 'Streaming', value: 'Música CD-DA Estéreo' }
+          { label: 'Chip de Som', value: 'Ricoh RF5C164 (8 Canais PCM 8-bit)' },
+          { label: 'Wave RAM', value: '64 KB SRAM Dedicada (Bancos de 4 KB)' },
+          { label: 'Taxa de Amostragem', value: 'Até 32.5 kHz c/ Panning Estéreo' },
+          { label: 'Total do Sistema', value: '18 Canais (8 PCM + 6 FM + 4 PSG) + CD' }
         ],
         detail:
-          'Une o som FM clássico do Mega Drive aos 8 canais digitais PCM do Mega-CD e à música em qualidade de CD.'
+          'Seg. Copetti: Alimentado pela Sub-CPU de 12.5 MHz (ou via DMA do CDC LC8951), adiciona 8 canais de samples digitais com 64 KB próprios. Em Sonic CD, era usado para tocar trechos de preenchimento enquanto o laser 1x voltava ao início da faixa de música!'
       }
     ]
   },
@@ -947,53 +971,54 @@ const ARCHITECTURE_DATA = {
     id: 'ps1',
     shortName: 'Sony PlayStation',
     name: 'Sony PlayStation — SCPH-1000 (1994)',
-    subtitle: 'SoC CXD8530BQ (CW33300 / R3000A + GTE + MDEC) • Dual Bus (Main 32b / Sub 16b) • 2 MB EDO',
+    subtitle: 'SoC CXD8530BQ (R3000A + GTE + MDEC + 1KB SRAM) • Main Bus 32b (7x DMA) • BIU Sub Bus (BIOS/SIO/Timers)',
     year: '1994',
     sources: [
-      { label: 'Copetti — PlayStation', url: 'https://www.copetti.org/writings/consoles/playstation' },
-      { label: 'RetroReversing — PS1 Architecture', url: 'https://www.retroreversing.com/ps1' }
+      { label: 'Copetti — PlayStation (PT-BR)', url: 'https://www.copetti.org/pt-br/writings/consoles/playstation/' },
+      { label: 'RetroReversing — PS1 Architecture', url: 'https://www.retroreversing.com/ps1' },
+      { label: 'Nocash PSX-SPX Specifications', url: 'https://problemkaputt.de/psx-spx.htm' }
     ],
     simulationSteps: [
       {
         step: 0,
         shortTitle: 'Visão Geral',
-        title: 'Arquitetura Base: Os 4 Blocos Centrais do PlayStation',
+        title: 'Arquitetura Completa: Os 4 Pilares Centrais da Placa-Mãe do PlayStation',
         summary:
-          'No Passo 0 vemos os 4 pilares da placa-mãe do PS1: o super-chip SoC CXD8530BQ (com CPU, GTE, MDEC e Scratchpad), os 2 MB de memória EDO DRAM, o Main Bus com 7 canais de DMA e a ponte BIU.',
+          'No Passo 0 vemos os 4 pilares da arquitetura segundo Copetti, RetroReversing e Nocash PSX-SPX: o SoC Sony CXD8530BQ (R3000A + CP0 + GTE + MDEC + 4KB I-Cache + 1KB Scratchpad), os 2 MB de EDO DRAM, o Main Bus de 32 bits com 7 canais de DMA e a Ponte BIU (com 512 KB BIOS, 3 Timers e SIO0/PIO).',
         simpleAnalogy:
-          'A Sony organizou a casa em 4 partes: um Super-Prédio (SoC) onde moram o Cérebro, o Engenheiro 3D, o Projetor de Cinema e um Bloco de Notas; uma Mesa Grande de 2 MB; uma Avenida Expressa (DMA) e um Pedágio (Ponte BIU).',
+          'A Sony organizou a casa em 4 partes: um Super-Prédio (SoC) onde moram o Cérebro, o Engenheiro 3D, o Projetor de Cinema e um Bloco de Notas; uma Mesa Grande de 2 MB; uma Avenida Expressa de 7 pistas (DMA) e um Pedágio (Ponte BIU com BIOS e Controles).',
         flowSteps: [
           {
             nodeId: 'ps1-cpu',
-            tag: '1. SoC Sony CXD8530BQ (33.87 MHz)',
+            tag: '1. SoC Sony CXD8530BQ (33.8688 MHz)',
             iconType: 'code',
-            text: 'Reúne no mesmo chip a CPU de 32 bits (MIPS R3000A), o motor 3D (GTE), o vídeo (MDEC) e 1 KB de Scratchpad.'
+            text: 'Integra na mesma pastilha o núcleo MIPS R3000A (com CP0), COP2 GTE (3D), MDEC (FMV), 4 KB I-Cache e 1 KB Scratchpad SRAM.'
           },
           {
             nodeId: 'ps1-ram',
             tag: '2. Main RAM: 2 MB EDO DRAM',
             iconType: 'code',
-            text: 'Memória principal de baixa latência (4× 512 KB) onde ficam o código do jogo, cenários e listas 3D.'
+            text: 'Memória principal de baixa latência (4× 512 KB) onde ficam os 64 KB do Kernel (PlayStation OS), o código do jogo e as Ordering Tables.'
           },
           {
             nodeId: 'ps1-dma',
-            tag: '3. Main Bus (32-bit) & DMA (7 Canais)',
+            tag: '3. Main Bus (32-bit @ 132 MB/s) & 7 Canais DMA',
             iconType: 'code',
-            text: 'Via expressa de 132 MB/s com 7 canais dedicados para transportar dados pesados sem usar a CPU.'
+            text: 'Controlador com 7 canais (Ch0 MDEC In, Ch1 MDEC Out, Ch2 GPU, Ch3 CD, Ch4 SPU, Ch5 PIO e Ch6 OTC) que assume posse exclusiva do bus.'
           },
           {
             nodeId: 'ps1-biu',
-            tag: '4. Ponte BIU & Sub Bus (16/8-bit)',
+            tag: '4. Ponte BIU & Sub Bus (BIOS 512KB + Timers + SIO0)',
             iconType: 'code',
-            text: 'Isola os periféricos mais lentos (leitor de CD, som SPU, BIOS de 512 KB e controles) em uma rua separada.'
+            text: 'Isola o Sub Bus de 16/8 bits: abriga a BIOS ROM de 512 KB (`0xBFC00000`), 3 Root Counters (Timers 0–2), portas SIO0 (Controles/Memory Card 128 KB), CD e SPU.'
           }
         ],
         insight:
-          'Colocar a CPU, o motor 3D (GTE) e o descompressor de vídeo (MDEC) dentro do mesmo chip eliminou atrasos: os cálculos 3D acontecem instantaneamente sem sair do processador!',
+          'Seg. Copetti & PSX-SPX: No boot em `0xBFC00000`, a CPU lê a BIOS de 512 KB pelo Sub Bus (8-bit) e copia 64 KB do Kernel (PlayStation OS) para os 2 MB de EDO DRAM para rodar em 32 bits sem lentidão!',
         speechSimple:
-          '"Chegamos ao PlayStation de 1994! Aqui vemos os 4 blocos centrais: no alto à esquerda está o super-chip da Sony que junta o processador, o calculador 3D, o projetor de vídeos e um bloquinho de notas de 1 KB; ao lado estão os 2 MB de memória principal; no meio passa a avenida expressa de DMA; e abaixo fica a ponte BIU!"',
+          '"Chegamos ao PlayStation de 1994! Aqui vemos os 4 blocos centrais: no alto à esquerda está o super-chip da Sony que junta o processador, o calculador 3D, o projetor de vídeos e um bloquinho de notas de 1 KB; ao lado estão os 2 MB de memória principal; no meio passa a avenida expressa de 7 canais DMA; e abaixo fica a ponte BIU com a BIOS de 512 KB, os Timers e as portas de Controle e Memory Card!"',
         speechTech:
-          '"Na visão geral do PS1 destacam-se 4 blocos: o SoC Sony CXD8530BQ a 33.87 MHz (integrando núcleo MIPS R3000A, GTE, MDEC e 1 KB Scratchpad), os 2 MB de EDO DRAM, o Main Bus de 32 bits gerenciado por 7 canais de DMA e a ponte BIU que isola o Sub Bus de 16/8 bits."',
+          '"Na visão geral do PS1 segundo Copetti, RetroReversing e Nocash PSX-SPX, destacam-se 4 blocos: o SoC Sony CXD8530BQ a 33.8688 MHz (R3000A, CP0, GTE, MDEC, 4 KB I-Cache e 1 KB Scratchpad), os 2 MB de EDO DRAM, o Main Bus de 32 bits gerenciado por 7 canais de DMA (Ch0 a Ch6) e a ponte BIU que conecta a BIOS de 512 KB, os 3 Root Counters e o barramento serial SIO0."',
         activeNodes: ['ps1-cpu', 'ps1-ram', 'ps1-dma', 'ps1-biu'],
         activeBuses: [],
         packets: []
@@ -1001,37 +1026,37 @@ const ARCHITECTURE_DATA = {
       {
         step: 1,
         shortTitle: 'CD 2x & Sub Bus',
-        title: 'Subsistema de CD-ROM (2x — 300 KB/s) → Ponte BIU',
+        title: 'Subsistema de CD-ROM (2x — 300 KB/s: DSP + 68HC05 + CXD1815Q + 32 KB) → Ponte BIU',
         summary:
-          'O leitor de CD do PS1 possui um microcomputador próprio que confere a trava do disco preto, lê os dados no dobro da velocidade (300 KB/s) para seu buffer de 32 KB e entrega à ponte BIU no Sub Bus.',
+          'O subsistema de CD funciona como um computador independente (DSP + Sub-CPU Motorola 68HC05 + Controlador CXD1815Q + 32 KB SRAM): valida o Wobble Groove (SCEx) do disco preto, lê setores a 300 KB/s e entrega à ponte BIU no Sub Bus.',
         simpleAnalogy:
-          'Para que o leitor de CD não atrapalhe a avenida expressa de 32 bits, ele trabalha numa "rua marginal" (Sub Bus), confere se o disco preto é original e deixa os dados prontos no pedágio (ponte BIU).',
+          'Para que o leitor de CD não atrapalhe a avenida expressa de 32 bits, ele trabalha numa "rua marginal" (Sub Bus) com seu próprio computador interno, confere se o disco preto é original e deixa os dados prontos no pedágio (ponte BIU).',
         flowSteps: [
           {
             nodeId: 'ps1-cd',
-            tag: '1. Subsistema CD-ROM (Chip 68HC05)',
+            tag: '1. Subsistema CD: DSP + Sub-CPU Motorola 68HC05',
             iconType: 'disc',
-            text: 'O microcontrolador próprio do leitor controla o laser e valida a ondulação física (SCEx) do disco preto.'
+            text: 'O microcontrolador 68HC05 (16 KB ROM + 512 B RAM) comanda o DSP do laser e valida a frequência Wobble Groove (SCEA/SCEE/SCEI) e subcanais LibCrypt.'
           },
           {
             nodeId: 'ps1-cd',
-            tag: '2. Leitura 2x (300 KB/s) + 32 KB SRAM',
+            tag: '2. Controlador CXD1815Q (2x — 300 KB/s) + 32 KB SRAM',
             iconType: 'disc',
-            text: 'Lê os setores do CD no dobro da velocidade da geração anterior e guarda no seu buffer próprio de 32 KB.'
+            text: 'Lê os setores do CD no dobro da velocidade (300 KB/s), corrige erros e armazena no buffer local de 32 KB SRAM.'
           },
           {
             nodeId: 'ps1-biu',
             tag: '3. Ponte BIU & Sub Bus (16/8-bit)',
             iconType: 'code',
-            text: 'Recebe os dados do leitor na rua secundária (Sub Bus) sem deixar o barramento principal lento.'
+            text: 'Recebe a fila de dados e interrupções do controlador de CD no Sub Bus sem bloquear o Main Bus de 32 bits.'
           }
         ],
         insight:
-          'Seg. Copetti: O leitor de CD funciona como um computador independente dentro do PS1 (com CPU Motorola 68HC05 e 32 KB de RAM) que checa a trava anti-pirataria e descomprime áudio XA!',
+          'Seg. Copetti & PSX-SPX: O bloco de CD é um computador separado vivendo dentro do PS1 (composto por DSP, Sub-CPU 68HC05, Controlador CXD1815Q e 32 KB SRAM) que aplica a trava anti-pirataria independentemente da CPU principal!',
         speechSimple:
-          '"Vejam os blocos ativos lá embaixo: o leitor de CD do PlayStation tem um microcomputador próprio que confere a ondulação secreta nos famosos CDs pretos, lê os dados a 300 KB por segundo para sua memória de 32 KB e entrega na ponte BIU!"',
+          '"Vejam os blocos ativos lá embaixo: o leitor de CD do PlayStation tem um computador próprio com 4 partes internas que confere a ondulação secreta nos famosos CDs pretos, lê os dados a 300 KB por segundo para sua memória de 32 KB e entrega na ponte BIU!"',
         speechTech:
-          '"No Sub Bus atuam o Subsistema de CD-ROM 2x e a Ponte BIU: o microcontrolador Motorola 68HC05 valida a trava Wobble Groove (SCEx), carrega setores a 300 KB/s no buffer SRAM de 32 KB e sinaliza à BIU que há pacotes prontos para o DMA."',
+          '"No Sub Bus atuam o Subsistema de CD-ROM 2x e a Ponte BIU: a Sub-CPU Motorola 68HC05 (16 KB ROM) controla o DSP óptico e valida o Wobble Groove (SCEx), enquanto o decodificador CXD1815Q armazena setores a 300 KB/s nos 32 KB de SRAM e aciona a BIU."',
         activeNodes: ['ps1-cd', 'ps1-biu'],
         activeBuses: ['bus-ps1-cd-sub'],
         packets: [
@@ -1050,15 +1075,15 @@ const ARCHITECTURE_DATA = {
         shortTitle: 'DMA Assume o Bus',
         title: 'Caminho Completo do Loading: Os 5 Componentes Ativos no DMA Canal 3',
         summary:
-          'Aqui 5 componentes funcionam ao mesmo tempo: os dados saem do CD, atravessam a ponte BIU, o DMA assume a avenida principal a 132 MB/s para abastecer os 2 MB de EDO RAM e a CPU continua trabalhando na Scratchpad de 1 KB!',
+          'Aqui 5 componentes funcionam ao mesmo tempo: os dados saem dos 32 KB do CD, atravessam a ponte BIU, o DMA Canal 3 assume a avenida principal a 132 MB/s para abastecer os 2 MB de EDO RAM e a CPU continua trabalhando na Scratchpad de 1 KB!',
         simpleAnalogy:
-          'Enquanto o trem expresso (DMA) leva a carga do CD, passa pelo pedágio (BIU) e fecha a avenida principal para encher a mesa de 2 MB (RAM), o Cérebro (CPU) não fica parado: ele continua fazendo contas no seu bloquinho de bolso de 1 KB (Scratchpad)!',
+          'Enquanto o trem expresso (DMA Ch3) leva a carga do CD, passa pelo pedágio (BIU) e fecha a avenida principal para encher a mesa de 2 MB (RAM), o Cérebro (CPU) não fica parado: ele continua fazendo contas no seu bloquinho de bolso de 1 KB (Scratchpad)!',
         flowSteps: [
           {
             nodeId: 'ps1-cd',
-            tag: '1. Subsistema CD-ROM (Buffer 32 KB)',
+            tag: '1. Subsistema CD-ROM (Buffer 32 KB SRAM)',
             iconType: 'disc',
-            text: 'Entrega o lote de setores da fase, texturas e modelos 3D que já estavam prontos no buffer de 32 KB.'
+            text: 'Entrega o lote de setores da fase, texturas e modelos 3D que já estavam prontos no buffer de 32 KB do controlador CXD1815Q.'
           },
           {
             nodeId: 'ps1-biu',
@@ -1070,7 +1095,7 @@ const ARCHITECTURE_DATA = {
             nodeId: 'ps1-dma',
             tag: '3. Main Bus & DMA (Canal 3 Assume o Bus)',
             iconType: 'code',
-            text: 'O DMA interdita a avenida principal para copiar os dados em rajadas ultrarrápidas de até 132 MB/s.'
+            text: 'O DMA Ch3 interdita a avenida principal para copiar os dados em rajadas ultrarrápidas de até 132 MB/s (33.87 MHz × 32 bits).'
           },
           {
             nodeId: 'ps1-ram',
@@ -1080,17 +1105,17 @@ const ARCHITECTURE_DATA = {
           },
           {
             nodeId: 'ps1-cpu',
-            tag: '5. SoC Sony (CPU na Scratchpad 1 KB)',
+            tag: '5. SoC Sony (CPU na Scratchpad 1 KB @ 0x1F800000)',
             iconType: 'code',
-            text: 'Impedida de usar a RAM durante o DMA, a CPU continua rodando código no I-Cache (4 KB) e na Scratchpad (1 KB)!'
+            text: 'Impedida de usar a RAM durante o DMA, a CPU continua rodando código no I-Cache (4 KB) e operando dados na Scratchpad (1 KB)!'
           }
         ],
         insight:
-          'Seg. Copetti ("Taking over the CPU"): É por isso que a Scratchpad de 1 KB é tão famosa no PS1 — os programadores guardavam as contas mais importantes nela para a CPU continuar trabalhando enquanto o DMA usava a avenida principal!',
+          'Seg. Copetti ("Taking over the CPU") & PSX-SPX: Como a Scratchpad de 1 KB (`0x1F800000`) fica dentro do chip CXD8530BQ, a CPU pode calcular matrizes e física nela com zero espera enquanto o DMA ocupa o Main Bus!',
         speechSimple:
-          '"Olhem os 5 componentes trabalhando juntos neste passo: 1º, o leitor de CD libera os dados; 2º, eles cruzam a ponte BIU; 3º, o DMA fecha a avenida principal a 132 MB/s; 4º, os dados enchem a memória principal de 2 MB; e 5º, como a avenida está fechada, a CPU continua trabalhando lá dentro do seu bloquinho de notas de 1 KB (Scratchpad)!"',
+          '"Olhem os 5 componentes trabalhando juntos neste passo: 1º, o leitor de CD libera os dados; 2º, eles cruzam a ponte BIU; 3º, o DMA Canal 3 fecha a avenida principal a 132 MB/s; 4º, os dados enchem a memória principal de 2 MB; e 5º, como a avenida está fechada, a CPU continua trabalhando lá dentro do seu bloquinho de notas de 1 KB (Scratchpad)!"',
         speechTech:
-          '"Aqui vemos os 5 blocos descritos por Copetti em Taking over the CPU: os setores saem do buffer de 32 KB do CD (1), atravessam a ponte BIU (2) e o DMA Canal 3 assume posse exclusiva do Main Bus a 132 MB/s (3) para gravar nos 2 MB de EDO DRAM (4), enquanto a CPU continua executando dentro do I-Cache e da Scratchpad de 1 KB (5)!"',
+          '"Aqui vemos os 5 blocos descritos por Copetti em Taking over the CPU: os setores saem do buffer de 32 KB do CD (1), atravessam a ponte BIU (2) e o DMA Canal 3 assume posse exclusiva do Main Bus a 132 MB/s (3) para gravar nos 2 MB de EDO DRAM (4), enquanto a CPU continua executando dentro do I-Cache (4 KB) e da Scratchpad de 1 KB em `0x1F800000` (5)!"',
         activeNodes: ['ps1-cd', 'ps1-biu', 'ps1-dma', 'ps1-ram', 'ps1-cpu'],
         activeBuses: ['bus-ps1-cd-sub', 'bus-ps1-biu-dma', 'bus-ps1-dma-ram'],
         packets: [
@@ -1123,51 +1148,51 @@ const ARCHITECTURE_DATA = {
       {
         step: 3,
         shortTitle: 'Vídeo FMV (MDEC)',
-        title: 'Cinema em Tela Cheia: EDO RAM → DMA (Canais 0 e 1) → Chip MDEC',
+        title: 'Cinema Completo (Copetti & PSX-SPX): EDO RAM ↔ DMA (Ch0, Ch1 e Ch2) ↔ MDEC → GPU (1 MB VRAM)',
         summary:
-          'Para exibir aberturas e filmes (FMV), os quadros comprimidos saem dos 2 MB de RAM, vão pelo DMA Canal 0 até o descompressor MDEC dentro do chip principal e voltam prontos em 16 milhões de cores pelo DMA Canal 1.',
+          'Segundo Copetti e Nocash PSX-SPX, o vídeo FMV percorre 4 blocos e 3 canais de DMA: a CPU desfaz o Huffman na EDO RAM, o DMA Ch0 leva os blocos ao MDEC, o DMA Ch1 devolve as tiras RGB prontas à RAM e o DMA Ch2 transfere para o Framebuffer de 24 bits na VRAM da GPU!',
         simpleAnalogy:
-          'O filme compactado sai da mesa de 2 MB (RAM), pega o trem de ida (DMA 0) até o "projetor de cinema" (MDEC) dentro do super-chip, que abre a imagem em 16 milhões de cores e manda de volta pelo trem de retorno (DMA 1)!',
+          'O filme passa por 4 estações: sai da mesa de 2 MB (RAM), pega o trem de ida (DMA 0) até o "projetor de cinema" (MDEC) que abre a imagem em 16,7 milhões de cores, volta pelo trem (DMA 1) e segue pelo trem de vídeo (DMA 2) direto para a tela da GPU!',
         flowSteps: [
           {
             nodeId: 'ps1-ram',
-            tag: '1. Main RAM: 2 MB EDO DRAM',
+            tag: '1. Main RAM: 2 MB EDO (Frame STR + Huffman)',
             iconType: 'video',
-            text: 'Fornece os quadros de vídeo compactados (formato STR) que foram lidos do CD-ROM.'
+            text: 'Recebe o quadro STR do CD (via DMA Ch3); a CPU descompacta a camada Huffman em blocos RLE na RAM.'
           },
           {
             nodeId: 'ps1-dma',
-            tag: '2. Main Bus & DMA (Canal 0 — Ida)',
+            tag: '2. Main Bus & DMA (Ch0 MDEC.In & Ch1 MDEC.Out)',
             iconType: 'video',
-            text: 'Transporta o fluxo de vídeo comprimido da memória EDO DRAM direto para a entrada do MDEC.'
+            text: 'O DMA Canal 0 envia os macroblocos comprimidos ao MDEC e o DMA Canal 1 devolve tiras de 16×240 pixels RGB para a RAM.'
           },
           {
             nodeId: 'ps1-cpu',
-            tag: '3. SoC Sony (Descompressor MDEC)',
+            tag: '3. SoC Sony: Descompressor MDEC (IDCT + YCbCr→RGB)',
             iconType: 'video',
-            text: 'Descomprime por hardware 9.000 blocos/s em cores reais de 24 bits (16,7 milhões de cores) sem gastar a CPU.'
+            text: 'Aplica transformada inversa de cosseno (IDCT) e conversão de cor em 9.000 macroblocos/s (30 fps em 24-bit True Color).'
           },
           {
-            nodeId: 'ps1-dma',
-            tag: '4. Main Bus & DMA (Canal 1 — Volta)',
+            nodeId: 'ps1-gpu',
+            tag: '4. Sony GPU + 1 MB VRAM (DMA Ch2 → Framebuffer 24-bit)',
             iconType: 'video',
-            text: 'Devolve o quadro de vídeo pronto a 30 fps para a memória/GPU exibir em tela cheia na TV!'
+            text: 'O DMA Canal 2 copia as tiras decodificadas para o Framebuffer na VRAM (1 MB), e o Video Encoder (DAC) exibe o filme na TV!'
           }
         ],
         insight:
-          'Graças ao MDEC dedicado dentro do chip principal, o PlayStation exibia vídeos em tela cheia com qualidade de cinema, muito acima dos vídeos granulados da geração de 16 bits.',
+          'Seg. Copetti & Nocash PSX-SPX: O pipeline de FMV usa 3 canais de DMA em cadeia (DMA0 RAM→MDEC, DMA1 MDEC→RAM em tiras de 16×240 e DMA2 RAM→GPU VRAM), permitindo exibir vídeos em 24 bits (16,7 milhões de cores) enquanto o resto da VRAM guarda texturas de 16 bits!',
         speechSimple:
-          '"Vejam o ícone de filme fazendo o ciclo entre os 3 blocos: o vídeo compactado sai da memória de 2 MB, vai pelo DMA Canal 0 até o chip MDEC dentro do processador, é aberto em 16 milhões de cores a 30 quadros por segundo e volta pelo DMA Canal 1 pronto para a tela!"',
+          '"Vejam os 4 componentes do cinema em tela cheia: 1º, o quadro do filme sai da memória de 2 MB; 2º, viaja pelo DMA Canal 0 até o chip MDEC dentro do processador; 3º, o MDEC abre a imagem em 16,7 milhões de cores a 30 quadros por segundo e devolve pelo DMA Canal 1; e 4º, o DMA Canal 2 leva o quadro pronto para o 1 MB de VRAM da GPU mostrar na TV!"',
         speechTech:
-          '"Na reprodução de vídeo FMV atuam a EDO DRAM, os canais 0 e 1 do DMA e o MDEC no SoC: o DMA Ch0 lê os frames comprimidos na RAM, o MDEC decodifica 9.000 macroblocos/s em 24 bits sem usar a CPU MIPS e o DMA Ch1 devolve os quadros a 30 fps."',
-        activeNodes: ['ps1-ram', 'ps1-dma', 'ps1-cpu'],
-        activeBuses: ['bus-ps1-ram-dma', 'bus-ps1-dma-cpu'],
+          '"Conforme detalhado por Copetti e Nocash PSX-SPX, o pipeline FMV aciona 4 blocos: a CPU desfaz o Huffman na EDO DRAM (1), o DMA Ch0 alimenta o MDEC no SoC (2), o MDEC executa IDCT e conversão YCbCr→RGB 24-bit a 9.000 macroblocos/s devolvendo via DMA Ch1 (3), e o DMA Ch2 transfere as tiras para o Framebuffer de 1 MB da GPU (4)."',
+        activeNodes: ['ps1-ram', 'ps1-dma', 'ps1-cpu', 'ps1-gpu'],
+        activeBuses: ['bus-ps1-ram-dma', 'bus-ps1-dma-cpu', 'bus-ps1-dma-gpu'],
         packets: [
           {
             pathId: 'path-ps1-ram-dma',
             color: '#10b981',
             type: 'video',
-            label: '1. Vídeo Compactado',
+            label: '1. DMA Ch0 (STR/RLE)',
             badgeX: 500,
             badgeY: 220
           },
@@ -1175,58 +1200,66 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-ps1-dma-cpu',
             color: '#ec4899',
             type: 'video',
-            label: '2. MDEC FMV 30fps',
+            label: '2. MDEC IDCT + Ch1',
             badgeX: 205,
             badgeY: 261
+          },
+          {
+            pathId: 'path-ps1-dma-gpu',
+            color: '#38bdf8',
+            type: 'video',
+            label: '3. DMA Ch2 -> VRAM 24b',
+            badgeX: 800,
+            badgeY: 232
           }
         ]
       },
       {
         step: 4,
         shortTitle: 'Pipeline 3D & SPU',
-        title: 'Gráficos 3D e Áudio Final: Os 5 Componentes Ativos em Paralelo',
+        title: 'Gráficos 3D e Áudio Final: Os 5 Componentes Ativos em Paralelo (GTE, OTC/RAM, DMA, GPU e SPU)',
         summary:
-          'No passo final 5 componentes trabalham juntos: o GTE calcula o 3D no SoC, a RAM monta a fila de distância (Ordering Table), o DMA dispara os pacotes, a GPU desenha no seu 1 MB de VRAM e a SPU toca 24 canais de som!',
+          'No passo final 5 componentes trabalham juntos: o DMA Ch6 (OTC) limpa a Ordering Table na RAM, o GTE projeta os vértices 3D, o DMA Ch2 envia a lista encadeada para a GPU desenhar no seu 1 MB de VRAM (Dual-Port/SGRAM) e o DMA Ch4 abastece a SPU de 24 canais!',
         simpleAnalogy:
           'É o gran finale com 5 peças trabalhando juntas: o Engenheiro 3D (GTE) calcula os objetos, organiza do mais longe ao mais perto na Mesa (RAM), o Trem Expresso (DMA) leva os desenhos para a Placa de Vídeo (GPU) mostrar na TV e leva os sons para o Estúdio de Áudio (SPU)!',
         flowSteps: [
           {
             nodeId: 'ps1-cpu',
-            tag: '1. SoC Sony (CPU + Motor 3D GTE)',
+            tag: '1. SoC Sony (CPU + Coprocessador COP2: GTE)',
             iconType: 'image',
-            text: 'O GTE projeta até 1,5 milhão de vértices 3D/s em ponto fixo, calculando perspectiva e iluminação.'
+            text: 'O GTE projeta até 1,5 milhão de vértices 3D/s em ponto fixo (66 MIPS), calculando perspectiva, iluminação e coordenada Z.'
           },
           {
             nodeId: 'ps1-ram',
-            tag: '2. Main RAM: 2 MB EDO (Ordering Table)',
+            tag: '2. Main RAM: 2 MB EDO (Ordering Table + DMA Ch6 OTC)',
             iconType: 'code',
-            text: 'Como a GPU não tem Z-Buffer, a RAM organiza os polígonos de trás para frente numa Ordering Table (limpa pelo DMA Ch6).'
+            text: 'O DMA Canal 6 (OTC) limpa a tabela em hardware e a RAM encadeia os polígonos de trás para frente (substituindo o Z-Buffer).'
           },
           {
             nodeId: 'ps1-dma',
-            tag: '3. Main Bus & DMA (Canais 2 e 4)',
+            tag: '3. Main Bus & DMA (Ch2 Linked-List GPU & Ch4 SPU)',
             iconType: 'code',
-            text: 'O DMA Canal 2 envia a lista de polígonos 3D e texturas para a GPU, enquanto o DMA Canal 4 envia áudio para a SPU.'
+            text: 'O DMA Canal 2 percorre sozinho a lista encadeada (Ordering Table) enviando pacotes à GPU, e o DMA Canal 4 transfere áudio à SPU.'
           },
           {
             nodeId: 'ps1-gpu',
-            tag: '4. Sony GPU + 1 MB VRAM (1024×512)',
+            tag: '4. Sony GPU + 1 MB VRAM (1024×512 + Video Encoder)',
             iconType: 'image',
-            text: 'Desenha a cena 3D e aplica as texturas (CLUT); por usar pixels inteiros sem sub-pixel e sem Z-Buffer, gera o clássico visual do PS1.'
+            text: 'Rasteriza polígonos (360k flat / 180k texturizados/s) com Page-Flipping e 2 KB Tex Cache; sem sub-pixel e c/ mapeamento afim.'
           },
           {
             nodeId: 'ps1-spu',
-            tag: '5. SPU (24 Canais ADPCM + 512 KB)',
+            tag: '5. SPU (24 Canais ADPCM + 512 KB DRAM + CD-XA)',
             iconType: 'audio',
-            text: 'Toca 24 vozes simultâneas com qualidade de CD (44.1 kHz), eco digital (Reverb) e áudio XA vindo direto do CD!'
+            text: 'Toca 24 vozes a 44.1 kHz (com Pitch Modulation, FM, ADSR e Reverb) nos seus 512 KB e mixa áudio XA-ADPCM direto do CD!'
           }
         ],
         insight:
-          'Seg. Copetti: Os cantos "pulando" nos jogos 3D do PS1 aconteciam porque a GPU desenhava apenas em coordenadas inteiras (sem sub-pixel), e as texturas entortavam por usar projeção afim sem profundidade Z!',
+          'Seg. Copetti & PSX-SPX: O PS1 tem um canal de DMA exclusivo (Canal 6 — OTC) cuja única função é limpar a Ordering Table de trás para frente na RAM! Depois, o DMA Canal 2 no modo Linked-List caminha pelos ponteiros da tabela enviando os polígonos à GPU sem usar a CPU.',
         speechSimple:
-          '"Para fechar com chave de ouro, vejam todas as 5 peças trabalhando juntas: 1º, o motor GTE calcula o 3D; 2º, a memória RAM organiza os objetos do mais distante ao mais próximo; 3º, o DMA dispara os gráficos pela linha azul e o som pela linha roxa; 4º, a placa de vídeo GPU desenha tudo no seu 1 MB de memória; e 5º, o chip SPU toca 24 canais de som com qualidade de CD!"',
+          '"Para fechar com chave de ouro, vejam todas as 5 peças trabalhando juntas: 1º, o motor GTE calcula o 3D; 2º, a memória RAM organiza os objetos do mais distante ao mais próximo numa lista limpa pelo DMA 6; 3º, o DMA dispara os gráficos pela linha azul e o som pela linha roxa; 4º, a placa de vídeo GPU desenha tudo no seu 1 MB de memória; e 5º, o chip SPU toca 24 canais de som com qualidade de CD!"',
         speechTech:
-          '"Neste último passo atuam 5 subsistemas: (1) o GTE calcula as matrizes 3D em ponto fixo; (2) a EDO DRAM armazena a Ordering Table ordenada por profundidade Z; (3) os canais 2 e 4 do DMA transferem os comandos gráficos e sonoros; (4) a GPU rasteriza os polígonos e texturas CLUT no seu 1 MB de VRAM (1024×512); e (5) a SPU processa 24 canais ADPCM nos seus 512 KB de Sound RAM."',
+          '"Neste último passo atuam 5 subsistemas segundo Copetti e PSX-SPX: (1) o GTE calcula as matrizes 3D em ponto fixo; (2) a EDO DRAM armazena a Ordering Table inicializada pelo DMA Ch6 (OTC); (3) o DMA Ch2 (em Linked-List mode) e o DMA Ch4 transferem os pacotes gráficos e sonoros; (4) a GPU rasteriza os polígonos e texturas CLUT no seu 1 MB de VRAM (1024×512); e (5) a SPU processa 24 canais ADPCM nos seus 512 KB de DRAM."',
         activeNodes: ['ps1-cpu', 'ps1-ram', 'ps1-dma', 'ps1-gpu', 'ps1-spu'],
         activeBuses: ['bus-ps1-cpu-dma', 'bus-ps1-ram-dma', 'bus-ps1-dma-gpu', 'bus-ps1-dma-spu'],
         packets: [
@@ -1234,7 +1267,7 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-ps1-ram-dma',
             color: '#10b981',
             type: 'image',
-            label: '1. Ordering Table',
+            label: '1. Ordering Table (Ch6/Ch2)',
             badgeX: 500,
             badgeY: 220
           },
@@ -1261,114 +1294,114 @@ const ARCHITECTURE_DATA = {
       {
         id: 'ps1-cpu',
         title: 'SoC Sony CXD8530BQ',
-        spec: '33.87 MHz • CW33300 (R3000A)',
-        subSpec: 'CPU + GTE (3D) + MDEC + 1KB SRAM',
+        spec: '33.8688 MHz • CW33300 (R3000A)',
+        subSpec: 'CPU + CP0 + GTE (COP2) + MDEC + 1KB SRAM',
         category: 'cpu',
-        simpleRole: 'O super-chip principal: reúne na mesma peça o Cérebro (CPU), o Calculador 3D (GTE), o Projetor de Filmes (MDEC) e 1 KB de bloco de notas.',
+        simpleRole: 'O super-chip principal: reúne na mesma peça o Cérebro (CPU), o Calculador 3D (GTE), o Projetor de Filmes (MDEC), 4 KB de Cache e 1 KB de bloco de notas.',
         metrics: [
-          { label: 'Núcleo RISC', value: 'LSI CW33300 (MIPS R3000A)' },
-          { label: 'Motor 3D (GTE)', value: '66 MIPS (1,5 milhão vértices/s)' },
-          { label: 'Vídeo (MDEC)', value: '9.000 Macroblocos/s (30 fps)' },
-          { label: 'Memória Interna', value: '4 KB I-Cache + 1 KB Scratchpad' }
+          { label: 'Núcleo RISC', value: 'LSI CW33300 (MIPS R3000A + CP0)' },
+          { label: 'Motor 3D (GTE)', value: 'COP2 @ 66 MIPS (1,5M vértices/s)' },
+          { label: 'Vídeo (MDEC)', value: 'IDCT + YCbCr→RGB (9.000 blocos/s)' },
+          { label: 'Memória Interna', value: '4 KB I-Cache + 1 KB Scratchpad SRAM' }
         ],
         detail:
-          'Seg. Copetti & RetroReversing: Chip customizado pela LSI Logic que reúne na mesma pastilha a CPU RISC de 32 bits (33.87 MHz), o motor 3D GTE, o descompressor de vídeo MDEC, 4 KB de cache de instruções e 1 KB de Scratchpad ultrarrápida.'
+          'Seg. Copetti, RetroReversing & PSX-SPX: Chip customizado pela LSI Logic que integra na mesma pastilha o núcleo MIPS R3000A de 32 bits (33.8688 MHz), o coprocessador de sistema CP0 (exceções/cache), o motor geométrico GTE (COP2 em ponto fixo), o descompressor de vídeo MDEC, 4 KB de Instruction Cache e 1 KB de Scratchpad Data SRAM (`0x1F800000`, livre durante transferências DMA).'
       },
       {
         id: 'ps1-dma',
-        title: 'Main Bus & DMA (7 Canais)',
-        spec: '32-bit @ 132 MB/s',
-        subSpec: 'Assume posse exclusiva do Main Bus',
+        title: 'Main Bus & DMA (7 Canais: Ch0–Ch6)',
+        spec: '32-bit @ 132 MB/s (Assíncrono)',
+        subSpec: 'Ch0/1 MDEC • Ch2 GPU • Ch3 CD • Ch4 SPU • Ch5 PIO • Ch6 OTC',
         category: 'storage',
-        simpleRole: 'A avenida expressa de 7 pistas que transporta dados a 132 MB/s entre o CD, a memória, o vídeo e o som.',
+        simpleRole: 'A avenida expressa de 7 pistas que transporta dados a 132 MB/s entre o CD, a memória, o vídeo, o som e limpa a lista 3D.',
         metrics: [
-          { label: 'Velocidade', value: '32 bits @ 132 MB/s' },
-          { label: 'Canais DMA', value: '7 Canais (MDEC, GPU, CD, SPU, OTC)' },
-          { label: 'Regra de Trânsito', value: 'Assume o Main Bus por completo' },
-          { label: 'Escape da CPU', value: 'Rodar nos 1 KB da Scratchpad' }
+          { label: 'Largura / Taxa', value: '32 bits @ 132 MB/s (33.87 MHz)' },
+          { label: 'Canais 0 a 3', value: 'Ch0/1: MDEC • Ch2: GPU • Ch3: CD' },
+          { label: 'Canais 4 a 6', value: 'Ch4: SPU • Ch5: PIO • Ch6: OTC (3D)' },
+          { label: 'Modos de Operação', value: 'Burst, Slice e Linked-List (Ch2)' }
         ],
         detail:
-          'Seg. Copetti ("Taking over the CPU"): Quando um canal de DMA é acionado, ele assume o Main Bus de 32 bits. Enquanto os dados viajam, a CPU fica impedida de acessar a RAM principal, podendo trabalhar apenas na sua Scratchpad de 1 KB.'
+          'Seg. Copetti & Nocash PSX-SPX: Possui 7 canais dedicados (`0x1F801080–0x1F8010F4`): Ch0 (MDEC In), Ch1 (MDEC Out), Ch2 (GPU Linked-List + VRAM), Ch3 (CD-ROM), Ch4 (SPU), Ch5 (Porta Paralela PIO) e Ch6 (OTC — Ordering Table Clear, que inicializa a tabela de ordenação 3D na RAM por hardware). Ao operar, assume o Main Bus impedindo a CPU de acessar a EDO DRAM.'
       },
       {
         id: 'ps1-ram',
         title: 'Main RAM: 2 MB EDO DRAM',
-        spec: '4× 512 KB Chips EDO',
-        subSpec: 'Código, Cenários 3D e Ordering Tables',
+        spec: '4× 512 KB Chips EDO (32-bit Bus)',
+        subSpec: '64 KB Kernel OS + Jogo + Ordering Tables',
         category: 'ram',
-        simpleRole: 'A mesa principal de trabalho de 2 Megabytes onde ficam a fase atual, os objetos 3D e a fila de distância dos polígonos.',
+        simpleRole: 'A mesa principal de trabalho de 2 Megabytes onde ficam o sistema operacional (64 KB), a fase atual e a fila de distância dos polígonos.',
         metrics: [
-          { label: 'Capacidade', value: '2 MB EDO DRAM (4× 512 KB)' },
-          { label: 'Tecnologia', value: 'EDO (Mais rápida em leituras)' },
-          { label: 'Ligação', value: 'Conectada ao Main Bus (32-bit)' },
-          { label: 'Uso no 3D', value: 'Guarda as Ordering Tables' }
+          { label: 'Capacidade', value: '2 MB EDO DRAM (Mapeada em 0x00000000)' },
+          { label: 'PlayStation OS', value: '64 KB reservados p/ o Kernel da BIOS' },
+          { label: 'Ordering Table', value: 'Lista encadeada Z-Sort (limpa pelo Ch6)' },
+          { label: 'Acesso DMA', value: '1 Ciclo por Word (132 MB/s pico)' }
         ],
         detail:
-          'Seg. Copetti: A Sony usou chips EDO DRAM de menor latência. Guarda o sistema (64 KB copiados da BIOS), o código do jogo e as Ordering Tables (listas que ordenam os polígonos de trás para frente).'
+          'Seg. Copetti: A Sony escolheu chips EDO (Extended Data Out) DRAM de menor latência no Main Bus de 32 bits. Armazena os 64 KB do Kernel copiados da BIOS durante o boot, o executável do jogo, os buffers de vídeo FMV e as Ordering Tables.'
       },
       {
         id: 'ps1-biu',
-        title: 'Bus Interface Unit (BIU)',
-        spec: 'Ponte Main 32b ↔ Sub Bus 16/8b',
-        subSpec: 'Conecta CD-ROM, SPU, BIOS (512 KB) e I/O',
+        title: 'Ponte BIU, BIOS, Timers & SIO0',
+        spec: 'Main Bus 32b ↔ Sub Bus 16/8b',
+        subSpec: 'BIOS 512KB + 3 Root Counters + SIO0/SIO1/PIO',
         category: 'storage',
-        simpleRole: 'O "pedágio inteligente" que separa a avenida rápida de 32 bits da rua secundária onde ficam o CD e os controles.',
+        simpleRole: 'O "pedágio inteligente" que liga o barramento rápido às peças de apoio: a BIOS de 512 KB, os 3 relógios (Timers) e as portas de Controle e Memory Card.',
         metrics: [
-          { label: 'Lado Rápido', value: 'Main Bus (32-bit)' },
-          { label: 'Lado Periférico', value: 'Sub Bus (16-bit / 8-bit)' },
-          { label: 'BIOS ROM', value: '512 KB ROM no Sub Bus' },
-          { label: 'Função', value: 'Evita lentidão no Main Bus' }
+          { label: 'BIOS ROM', value: '512 KB ROM (8-bit @ 0xBFC00000)' },
+          { label: '3 Root Counters', value: 'Timer 0 (Dot), Timer 1 (HBlank), Timer 2 (Sys/8)' },
+          { label: 'Portas Frontais', value: 'SIO0 Serial (2× Controles + 2× MemCard 128KB)' },
+          { label: 'Portas Traseiras', value: 'SIO1 (Link Cable) + PIO (Paralela 8-bit)' }
         ],
         detail:
-          'Seg. Copetti: Faz a ponte entre o Main Bus de 32 bits e o Sub Bus de 16/8 bits (onde ficam a SPU, o leitor de CD, a BIOS de 512 KB e as portas de controle e Memory Card).'
+          'Seg. Copetti & Nocash PSX-SPX: A Bus Interface Unit (BIU) isola o Sub Bus de 16/8 bits e gerencia o acesso à BIOS ROM de 512 KB (que contém o boot, a Shell e o Kernel), aos 3 contadores de tempo (Root Counters 0, 1 e 2), à interface serial SIO0 (que conversa com os Controles e os Memory Cards EEPROM de 128 KB a 250 kHz), à porta serial SIO1 e à paralela PIO.'
       },
       {
         id: 'ps1-gpu',
-        title: 'Sony GPU + 1 MB VRAM',
-        spec: 'Grade 1024×512 (16 bpp)',
-        subSpec: '2KB Tex Cache • CLUT • Sem Z-Buffer',
+        title: 'Sony GPU + 1 MB VRAM + RGB DAC',
+        spec: 'Grade 1024×512 (Dual-Port VRAM / SGRAM)',
+        subSpec: '2KB Tex Cache • Page-Flipping • Sem Z-Buffer',
         category: 'gpu',
-        simpleRole: 'A placa de vídeo que desenha os polígonos 3D em um grande quadro de 1 MB onde cabem a imagem da TV e as texturas.',
+        simpleRole: 'A placa de vídeo que desenha os polígonos 3D em um grande quadro de 1 MB (com dois buffers de tela, texturas e paletas CLUT) e envia para a TV.',
         metrics: [
-          { label: 'VRAM', value: '1 MB (Quadro 1024×512 pixels)' },
-          { label: 'Cache Interno', value: '2 KB Texture Cache + 64B FIFO' },
-          { label: 'O que Guarda', value: 'Tela da TV + Texturas + Cores CLUT' },
-          { label: 'Visual Clássico', value: 'Sem Sub-pixel e Sem Z-Buffer' }
+          { label: 'VRAM (1 MB)', value: 'Dual-Ported VRAM (2× 16b) → SGRAM (32b)' },
+          { label: 'Cache Interno', value: '2 KB Texture Cache + 64B Command FIFO' },
+          { label: 'Desempenho 3D', value: '360k Flat / 180k Polígonos Texturizados/s' },
+          { label: 'Saída de Vídeo', value: '256×224 a 640×480 (16-bit ou 24-bit RGB)' }
         ],
         detail:
-          'Seg. Copetti: Enxerga seu 1 MB de VRAM como uma grande tela 2D de 1024×512 onde moram juntas a imagem visível na TV, as páginas de texturas (256×256) e as paletas CLUT. Por não ter sub-pixel nem Z-Buffer, gerava o famoso visual trêmulo do PS1.'
+          'Seg. Copetti & PSX-SPX: Enxerga seu 1 MB de memória como uma grade 2D de 1024×512 pixels (16 bpp) onde convivem dois Framebuffers (Page-Flipping), Texture Pages (4/8/15-bit) e tabelas de cores CLUT (além de bitmaps de 24 bpp para FMV). Nos primeiros SCPH-1000 usava Dual-Ported VRAM (permitindo à GPU desenhar enquanto o Video Encoder enviava a imagem à TV), substituída depois por SGRAM de 32 bits.'
       },
       {
         id: 'ps1-spu',
-        title: 'SPU (24 Canais ADPCM)',
-        spec: '16-bit @ 44.1 kHz + 512 KB RAM',
-        subSpec: '508 KB Úteis • XA-ADPCM • Reverb',
+        title: 'SPU (24 Canais ADPCM + 512 KB DRAM)',
+        spec: '16-bit @ 44.1 kHz + Reverb Digital',
+        subSpec: '508 KB Úteis • Pitch/FM/ADSR • CD-XA Direto',
         category: 'audio',
-        simpleRole: 'O estúdio de som com 24 vozes simultâneas em qualidade de CD, efeitos de eco (reverb) e ligação direta com o CD.',
+        simpleRole: 'O estúdio de som com 24 vozes simultâneas em qualidade de CD, modulação FM, eco digital (reverb) e ligação direta com o leitor de CD.',
         metrics: [
-          { label: 'Vozes', value: '24 Canais Simultâneos' },
-          { label: 'Qualidade', value: '16-bit @ 44.1 kHz (Qualidade CD)' },
-          { label: 'Memória Som', value: '512 KB (508 KB livres p/ o jogo)' },
-          { label: 'Áudio do CD', value: 'Recebe XA-ADPCM direto do leitor' }
+          { label: 'Polifonia', value: '24 Canais ADPCM (16-bit @ 44.1 kHz)' },
+          { label: 'Sound RAM', value: '512 KB DRAM (508 KB livres + buffer CD/Reverb)' },
+          { label: 'Síntese & DSP', value: 'Pitch Mod, Modulação FM, ADSR e Reverb' },
+          { label: 'Streaming Direto', value: 'Recebe CD-DA e XA-ADPCM direto do CD' }
         ],
         detail:
-          'Seg. Copetti: Dos 512 KB de memória de som, 508 KB guardam efeitos e instrumentos do jogo e 4 KB servem para o eco digital (reverb). Também recebe músicas e vozes XA-ADPCM direto do CD sem gastar memória!'
+          'Seg. Copetti & PSX-SPX: Chip Sony CXD2922Q com 512 KB de DRAM própria (acessível via DMA Ch4). Além de reproduzir 24 canais ADPCM com envelope ADSR e reverberação digital, permite que vozes modulem a frequência de outras (como sintetizador FM) e mistura diretamente o áudio CD-DA e XA-ADPCM vindos do controlador de CD.'
       },
       {
         id: 'ps1-cd',
-        title: 'Subsistema CD-ROM (2x)',
-        spec: '300 KB/s (620 MB) + 32 KB SRAM',
-        subSpec: 'Chip 68HC05 • Áudio XA • Trava SCEx',
+        title: 'Subsistema CD-ROM 2x (4 Chips Internos)',
+        spec: 'DSP + 68HC05 + Controlador CXD1815Q + 32KB',
+        subSpec: '300 KB/s (640 MB) • Áudio XA • Wobble SCEx & LibCrypt',
         category: 'cd',
-        simpleRole: 'Um computador próprio dentro do leitor que lê 620 MB no dobro da velocidade (2x) e confere a trava dos discos pretos.',
+        simpleRole: 'Um computador independente dentro do leitor (com DSP, CPU 68HC05, Controlador e 32 KB RAM) que lê a 300 KB/s e confere a trava dos discos pretos.',
         metrics: [
-          { label: 'Velocidade', value: '2x (300 KB/s) • 620 MB' },
-          { label: 'CPU do Leitor', value: 'Motorola 68HC05 + 32 KB SRAM' },
-          { label: 'Formatos', value: 'Dados, Música CD e CD-ROM XA' },
-          { label: 'Anti-Pirataria', value: 'Ondulação Wobble SCEx no disco' }
+          { label: 'Sub-CPU do CD', value: 'Motorola MC68HC05 (16 KB ROM + 512 B RAM)' },
+          { label: 'Controlador / Buffer', value: 'CXD1815Q Decoder + 32 KB SRAM + DSP' },
+          { label: 'Velocidade / Mídia', value: '2x CLV (300 KB/s) • Até 640 MB + CD-XA' },
+          { label: 'Anti-Pirataria', value: 'Wobble Groove (SCEA/E/I) + Subcanais LibCrypt' }
         ],
         detail:
-          'Seg. Copetti & RetroReversing: Funciona como um computador independente dentro do PS1. Seu chip Motorola 68HC05 controla a leitura a 300 KB/s, descomprime áudio XA direto para a SPU e verifica a ondulação física dos discos originais.'
+          'Seg. Copetti & PSX-SPX: Conforme o diagrama oficial do Subsistema de CD, é composto por 4 blocos internos: (1) DSP óptico (controla motor/laser e sinal RF), (2) Sub-CPU Motorola 68HC05 (16 KB ROM + 512 B RAM, que checa a frequência Wobble Groove SCEx na TOC e subcanais), (3) Controlador de CD CXD1815Q (com DMA próprio p/ RAM e SPU) e (4) 32 KB de SRAM para buffer de setores.'
       }
     ]
   }
@@ -2290,9 +2323,10 @@ export default function ArquiteturaConsolesCDROM() {
                         <path id="path-pce-hucard" d="M 425 137 L 365 137 L 365 156 L 290 156" />
                         <path id="path-pce-scsi" d="M 735 237 L 665 237" />
                         <path id="path-pce-exp" d="M 425 237 L 365 237 L 365 156 L 290 156" />
-                        <path id="path-pce-cpu-vdc" d="M 290 175 L 318 175 L 318 346 L 290 346" />
+                        <path id="path-pce-cpu-vdc" d="M 290 175 L 322 175 L 322 338 L 290 338" />
                         <path id="path-pce-vdc" d="M 170 380 L 170 400" />
-                        <path id="path-pce-vce" d="M 170 462 L 170 482" />
+                        {/* Seg. Copetti & Archaic Pixels: VDC envia stream digital de 9 bits DIRETO ao VCE (sem passar pela VRAM!) */}
+                        <path id="path-pce-vce" d="M 290 362 L 314 362 L 314 512 L 290 512" />
                         <path id="path-pce-audio" d="M 845 276 L 845 351 L 665 351" />
                         <path id="path-pce-cpu-audio" d="M 290 156 L 365 156 L 365 351 L 425 351" />
                       </defs>
@@ -2380,9 +2414,9 @@ export default function ArquiteturaConsolesCDROM() {
                       {renderBusPath('bus-pce-hucard', 'M 425 137 L 365 137 L 365 156 L 290 156', '#f59e0b', 5)}
                       {renderBusPath('bus-pce-scsi', 'M 735 237 L 665 237', '#f97316', 5)}
                       {renderBusPath('bus-pce-exp', 'M 425 237 L 365 237 L 365 156 L 290 156', '#38bdf8', 5)}
-                      {renderBusPath('bus-pce-cpu-vdc', 'M 290 175 L 318 175 L 318 346 L 290 346', '#38bdf8', 4.5)}
+                      {renderBusPath('bus-pce-cpu-vdc', 'M 290 175 L 322 175 L 322 338 L 290 338', '#38bdf8', 4.5)}
                       {renderBusPath('bus-pce-vdc', 'M 170 380 L 170 400', '#38bdf8', 5)}
-                      {renderBusPath('bus-pce-vce', 'M 170 462 L 170 482', '#a855f7', 5)}
+                      {renderBusPath('bus-pce-vce', 'M 290 362 L 314 362 L 314 512 L 290 512', '#a855f7', 5)}
                       {renderBusPath('bus-pce-audio', 'M 845 276 L 845 351 L 665 351', '#10b981', 4.5)}
                       {renderBusPath('bus-pce-cpu-audio', 'M 290 156 L 365 156 L 365 351 L 425 351', '#ec4899', 4.5)}
 
@@ -2393,9 +2427,9 @@ export default function ArquiteturaConsolesCDROM() {
                         115,
                         240,
                         82,
-                        'CPU HuC6280 + MMU',
-                        '8-bit 65C02 @ 7.16 MHz',
-                        '8× Regs MPR (21-bit) + 6ch PSG',
+                        'CPU HuC6280 + MMU + PSG',
+                        '65C02 @ 7.16 MHz + 8× MPR (21b)',
+                        '6ch PSG + Timer 7b + IRQ + Porta I/O',
                         'cpu'
                       )}
                       {renderHardwareNode(
@@ -2404,9 +2438,9 @@ export default function ArquiteturaConsolesCDROM() {
                         220,
                         240,
                         68,
-                        'Work RAM Base',
+                        'Work RAM Base ($F8)',
                         '8 KB SRAM Interna',
-                        '1 Página MPR no Console',
+                        'Zero-Page / Stack + Variáveis',
                         'ram'
                       )}
                       {renderHardwareNode(
@@ -2416,8 +2450,8 @@ export default function ArquiteturaConsolesCDROM() {
                         240,
                         70,
                         'VDC: HuC6270 (Vídeo)',
-                        'Bus VRAM 16-bit + SATB DMA',
-                        'Tiles 8×8 e 64 Sprites 16×16',
+                        'Bus VRAM 16-bit Exclusivo + DMA',
+                        'Tiles 8×8 (BAT) e 64 Sprites (SATB)',
                         'gpu'
                       )}
                       {renderHardwareNode(
@@ -2426,9 +2460,9 @@ export default function ArquiteturaConsolesCDROM() {
                         400,
                         240,
                         62,
-                        'VRAM Dedicada',
-                        '64 KB (Words de 16-bit)',
-                        'Gráficos Planar 4-bit (CH0-CH3)',
+                        'VRAM Exclusiva do VDC',
+                        '64 KB (32K Words × 16-bit)',
+                        'Ligada só ao VDC (Planar 4-bit)',
                         'ram'
                       )}
                       {renderHardwareNode(
@@ -2437,9 +2471,9 @@ export default function ArquiteturaConsolesCDROM() {
                         482,
                         240,
                         60,
-                        'VCE: HuC6260 (Cores)',
-                        '32 Paletas × 16 Cores (RGB 9b)',
-                        'Até 482 cores na tela -> Saída TV',
+                        'VCE: HuC6260 (Cores & Sync)',
+                        'Recebe 9-bit do VDC • 32 Paletas',
+                        'Até 482 cores (de 512) -> Saída TV',
                         'gpu'
                       )}
 
@@ -2461,9 +2495,9 @@ export default function ArquiteturaConsolesCDROM() {
                         198,
                         240,
                         78,
-                        'CD-ROM² Work RAM',
-                        '64 KB DRAM + 2 KB BRAM',
-                        'Buffer de código/dados + Saves',
+                        'CD-ROM² Work RAM & BRAM',
+                        '64 KB DRAM + 2 KB Save BRAM',
+                        'Bancos MMU $80–$87 + Ponte SCSI',
                         'ram'
                       )}
                       {renderHardwareNode(
@@ -2474,7 +2508,7 @@ export default function ArquiteturaConsolesCDROM() {
                         82,
                         'Áudio ADPCM + Mixer',
                         '64 KB ADPCM + OKI MSM5205',
-                        'Mixa Vozes + CD-DA + PSG Estéreo',
+                        'Mixa Vozes (32kHz) + CD-DA + PSG',
                         'audio'
                       )}
 
@@ -2485,8 +2519,8 @@ export default function ArquiteturaConsolesCDROM() {
                         190,
                         220,
                         86,
-                        'Leitor CD-ROM² (1x)',
-                        '150 KB/s • Barramento SCSI',
+                        'Leitor CD-ROM² (1x SCSI)',
+                        '150 KB/s • Barramento SCSI-1',
                         '650 MB (Mode 1 + Áudio CD-DA)',
                         'cd'
                       )}
@@ -2509,6 +2543,7 @@ export default function ArquiteturaConsolesCDROM() {
                         <path id="path-mcd-main-word" d="M 372 285 L 335 285 L 335 150 L 305 150" />
                         <path id="path-mcd-vdp" d="M 305 170 L 318 170 L 318 368 L 305 368" />
                         <path id="path-mcd-z80" d="M 40 256 L 28 256 L 28 481 L 40 481" />
+                        <path id="path-mcd-sub-pcm" d="M 700 331 L 700 385" />
                         <path id="path-mcd-pcm" d="M 885 303 L 885 385" />
                       </defs>
 
@@ -2539,7 +2574,7 @@ export default function ArquiteturaConsolesCDROM() {
                         strokeWidth="1.8"
                       />
                       <text x="460" y="82" textAnchor="middle" fill="#c084fc" fontSize="11" fontWeight="800">
-                        PONTE WORD RAM &amp; ASIC
+                        GATE ARRAY ASIC &amp; WORD RAM
                       </text>
 
                       <rect
@@ -2576,6 +2611,7 @@ export default function ArquiteturaConsolesCDROM() {
                       {renderBusPath('bus-mcd-main-word', 'M 372 285 L 335 285 L 335 150 L 305 150', '#ec4899', 5)}
                       {renderBusPath('bus-mcd-vdp', 'M 305 170 L 318 170 L 318 368 L 305 368', '#38bdf8', 5)}
                       {renderBusPath('bus-mcd-z80', 'M 40 256 L 28 256 L 28 481 L 40 481', '#f59e0b', 4.5)}
+                      {renderBusPath('bus-mcd-sub-pcm', 'M 700 331 L 700 385', '#ec4899', 5)}
                       {renderBusPath('bus-mcd-pcm', 'M 885 303 L 885 385', '#10b981', 5)}
 
                       {/* Blocos Mega Drive Base */}
@@ -2596,9 +2632,9 @@ export default function ArquiteturaConsolesCDROM() {
                         215,
                         265,
                         82,
-                        '64 KB RAM + Árbitro de Bus',
-                        'Work RAM 68k + Bus Arbiter',
-                        'Pausa 68k ou Z80 p/ evitar colisão',
+                        '64 KB RAM + Árbitro & I/O',
+                        'BusReq ($A11100) + Bank 32KB Z80',
+                        'Chip I/O 315-5309 + TMSS • Pausa DMA',
                         'ram'
                       )}
                       {renderHardwareNode(
@@ -2607,9 +2643,9 @@ export default function ArquiteturaConsolesCDROM() {
                         325,
                         265,
                         86,
-                        'VDP (Modo V + DMA)',
+                        'VDP (Modo V + DMA + PSG)',
                         '64KB VRAM + 128B CRAM + 80B VSRAM',
-                        'Tiles 8×8 • 4 Planos • 64 Cores (512)',
+                        '4 Planos • 64 Cores + SN76489 PSG',
                         'gpu'
                       )}
                       {renderHardwareNode(
@@ -2618,22 +2654,22 @@ export default function ArquiteturaConsolesCDROM() {
                         440,
                         265,
                         82,
-                        'Zilog Z80 + 8 KB RAM',
-                        '~3.58 MHz • ALU 4-bit',
-                        'Comanda YM2612 (6ch FM) + PSG',
+                        'Zilog Z80 (8 KB) + YM2612',
+                        '~3.58 MHz • Bus de Áudio Dedicado',
+                        'Yamaha YM2612 (6ch FM / PCM) + PSG',
                         'audio'
                       )}
 
-                      {/* Blocos Ponte Word RAM & ASIC */}
+                      {/* Blocos Ponte Gate Array ASIC & Word RAM */}
                       {renderHardwareNode(
                         'mcd-asic',
                         372,
                         110,
                         178,
                         84,
-                        'ASIC Gráfico',
-                        'Rotação e Escala Afim',
-                        'Bitmap -> Tiles 8×8 VDP',
+                        'Gate Array / ASIC',
+                        'Rotação/Escala + Comm Ports',
+                        '$A12010–2E + IRQ2 + Tiles 8×8',
                         'gpu'
                       )}
                       {renderHardwareNode(
@@ -2643,7 +2679,7 @@ export default function ArquiteturaConsolesCDROM() {
                         178,
                         95,
                         'Word RAM (256 KB)',
-                        'Dual-Bank 2M ou 1M/1M',
+                        'Modo 2M ou 1M/1M ($600000)',
                         'Bank Swap Sub ↔ Main',
                         'ram'
                       )}
@@ -2656,8 +2692,8 @@ export default function ArquiteturaConsolesCDROM() {
                         190,
                         82,
                         'Sub-CPU: 2º 68000',
-                        '12.5 MHz CISC (Mega-CD)',
-                        'Controla CD, FMV e ASIC',
+                        '12.5 MHz + 128KB BIOS',
+                        '+8KB BRAM • Controla CDC/PCM',
                         'cpu'
                       )}
                       {renderHardwareNode(
@@ -2667,8 +2703,8 @@ export default function ArquiteturaConsolesCDROM() {
                         190,
                         86,
                         'Program RAM (512 KB)',
-                        '512 KB DRAM Exclusiva',
-                        'Execução da Sub-CPU 12.5 MHz',
+                        '512 KB DRAM (4× 128 KB)',
+                        'Execução Sub-CPU + DMA CDC',
                         'ram'
                       )}
                       {renderHardwareNode(
@@ -2677,9 +2713,9 @@ export default function ArquiteturaConsolesCDROM() {
                         215,
                         155,
                         88,
-                        'CD-ROM (1x CLV)',
+                        'CD 1x + CDC LC8951',
                         '150 KB/s + 16KB Cache',
-                        'Dados + Áudio CD-DA',
+                        'DMA CDC + Áudio CD-DA',
                         'cd'
                       )}
                       {renderHardwareNode(
@@ -2689,7 +2725,7 @@ export default function ArquiteturaConsolesCDROM() {
                         360,
                         86,
                         'Áudio Mega-CD: Ricoh RF5C164 (8ch PCM)',
-                        '64 KB PCM Wave RAM + Mixagem CD-DA',
+                        '64 KB PCM Wave RAM (Sub-CPU) + Mixagem CD-DA',
                         'Truque Sonic CD: cobre seek do laser 1x no loop',
                         'audio'
                       )}
@@ -2763,7 +2799,7 @@ export default function ArquiteturaConsolesCDROM() {
                           filter="url(#dropShadow)"
                         />
                         <text x="45" y="84" fill="#60a5fa" fontSize="11.5" fontWeight="800">
-                          SoC SONY CXD8530BQ (CW33300 @ 33.87 MHz)
+                          SoC SONY CXD8530BQ (CW33300 @ 33.8688 MHz)
                         </text>
 
                         <rect x="45" y="95" width="145" height="62" rx="8" fill="#1e3a8a" stroke="#3b82f6" strokeWidth="1.5" />
@@ -2774,7 +2810,7 @@ export default function ArquiteturaConsolesCDROM() {
                           32-bit RISC (MIPS I)
                         </text>
                         <text x="117" y="146" textAnchor="middle" fill="#cbd5e1" fontSize="9">
-                          + CP0 (Cache/IRQ)
+                          + CP0 (Exceções/Cache)
                         </text>
 
                         <rect x="200" y="95" width="150" height="62" rx="8" fill="#312e81" stroke="#6366f1" strokeWidth="1.5" />
@@ -2793,7 +2829,7 @@ export default function ArquiteturaConsolesCDROM() {
                           4KB I-Cache + 1KB SRAM
                         </text>
                         <text x="117" y="204" textAnchor="middle" fill="#6ee7b7" fontSize="9.5" fontWeight="700">
-                          Scratchpad Interna
+                          Scratchpad (0x1F800000)
                         </text>
                         <text x="117" y="219" textAnchor="middle" fill="#fde68a" fontSize="8.5" fontWeight="700">
                           Livre durante DMA!
@@ -2804,10 +2840,10 @@ export default function ArquiteturaConsolesCDROM() {
                           MDEC (Vídeo FMV)
                         </text>
                         <text x="275" y="204" textAnchor="middle" fill="#f9a8d4" fontSize="9.5" fontWeight="700">
-                          9.000 Macroblocos/s
+                          IDCT + YCbCr→RGB 24b
                         </text>
                         <text x="275" y="219" textAnchor="middle" fill="#cbd5e1" fontSize="8.5">
-                          320×240 @ 30fps 24-bit
+                          9.000 Blocos/s (30 fps)
                         </text>
                       </g>
 
@@ -2820,7 +2856,7 @@ export default function ArquiteturaConsolesCDROM() {
                         92,
                         'Main RAM: 2 MB EDO',
                         '4× 512 KB Chips EDO DRAM',
-                        'Código, 3D e Ordering Table',
+                        '64KB Kernel + Ordering Table',
                         'ram'
                       )}
 
@@ -2831,9 +2867,9 @@ export default function ArquiteturaConsolesCDROM() {
                         72,
                         330,
                         115,
-                        'Sony GPU + 1 MB VRAM',
-                        'Grade 1024×512 • 2KB Tex Cache',
-                        'Framebuffer + Texturas • Sem Z-Buffer',
+                        'Sony GPU + 1 MB VRAM + RGB DAC',
+                        '1024×512 (Dual-Port VRAM / SGRAM) • 2KB Cache',
+                        'Page-Flipping + CLUT • Sem Sub-pixel / Z-Buffer',
                         'gpu'
                       )}
 
@@ -2911,7 +2947,7 @@ export default function ArquiteturaConsolesCDROM() {
                           fontSize="12.5"
                           fontWeight="800"
                         >
-                          MAIN BUS (32-BIT • 132 MB/s) &amp; CONTROLADOR DE DMA (7 CANAIS — ASSUME O BUS)
+                          MAIN BUS (32-BIT • 132 MB/s) &amp; CONTROLADOR DE DMA (7 CANAIS: Ch0 A Ch6 — ASSUME O BUS)
                         </text>
                         <text
                           x="500"
@@ -2921,7 +2957,7 @@ export default function ArquiteturaConsolesCDROM() {
                           fontSize="10"
                           fontWeight="600"
                         >
-                          Ch0/1: MDEC FMV • Ch2: GPU (Ordering Table/Texturas) • Ch3: CD-ROM • Ch4: SPU • Ch6: OTC
+                          Ch0: MDEC In • Ch1: MDEC Out • Ch2: GPU (Linked-List/VRAM) • Ch3: CD-ROM • Ch4: SPU • Ch5: PIO • Ch6: OTC
                         </text>
                       </g>
 
@@ -2932,9 +2968,9 @@ export default function ArquiteturaConsolesCDROM() {
                         375,
                         205,
                         86,
-                        'Ponte BIU & Sub Bus',
-                        'Main 32b ↔ Sub Bus 16/8b',
-                        'BIOS (512 KB) + Portas Controles',
+                        'Ponte BIU, BIOS & SIO0',
+                        'BIOS 512KB + 3 Root Counters',
+                        'SIO0 (Controles + MemCard 128KB)',
                         'storage'
                       )}
 
@@ -2946,8 +2982,8 @@ export default function ArquiteturaConsolesCDROM() {
                         245,
                         92,
                         'SPU (24 Canais ADPCM)',
-                        '16-bit @ 44.1 kHz + 512 KB RAM',
-                        '508 KB Úteis • XA-ADPCM • Reverb',
+                        '16-bit @ 44.1 kHz + 512 KB DRAM',
+                        'Pitch/FM/ADSR • Reverb • CD-XA',
                         'audio'
                       )}
 
@@ -2958,9 +2994,9 @@ export default function ArquiteturaConsolesCDROM() {
                         375,
                         320,
                         92,
-                        'Subsistema CD-ROM (2x)',
-                        '300 KB/s (620 MB) + 32 KB SRAM',
-                        'Chip 68HC05 • Áudio XA • Trava SCEx',
+                        'Subsistema CD-ROM (2x — 4 Chips)',
+                        'DSP + 68HC05 + CXD1815Q + 32 KB SRAM',
+                        '300 KB/s • Áudio XA • Wobble SCEx/LibCrypt',
                         'cd'
                       )}
 
@@ -2973,7 +3009,7 @@ export default function ArquiteturaConsolesCDROM() {
                         strokeDasharray="6 4"
                       />
                       <text x="480" y="511" textAnchor="middle" fill="#10b981" fontSize="10" fontWeight="700">
-                        STREAMING DIRETO DO LEITOR DE CD: ÁUDIO XA-ADPCM / CD-DA → SPU (SEM GASTAR CPU/RAM)
+                        STREAMING DIRETO DO CONTROLADOR DE CD (CXD1815Q): ÁUDIO XA-ADPCM / CD-DA → SPU (SEM GASTAR CPU/RAM)
                       </text>
 
                       {renderAnimatedPackets()}
@@ -3010,7 +3046,7 @@ export default function ArquiteturaConsolesCDROM() {
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {currentArch.sources.map((src, i) => (
                     <a
                       key={i}
@@ -3404,14 +3440,14 @@ export default function ArquiteturaConsolesCDROM() {
               </div>
             </div>
 
-            {/* Quadro Comparativo Limpo e Direto */}
+            {/* Quadro Comparativo Completo (Copetti, RetroReversing, Archaic Pixels, Plutiedev & PSX-SPX) */}
             <div
               className={`p-5 rounded-2xl border overflow-x-auto ${
                 lightMode ? 'bg-white border-slate-200 shadow-xs' : 'bg-[#0c1221] border-slate-800'
               }`}
             >
               <h3 className="text-base font-extrabold mb-3">
-                Comparativo lado a lado (Segundo Rodrigo Copetti &amp; RetroReversing)
+                Comparativo Arquitetural Completo (Copetti, RetroReversing, Archaic Pixels, Plutiedev &amp; PSX-SPX)
               </h3>
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
@@ -3425,64 +3461,70 @@ export default function ArquiteturaConsolesCDROM() {
                 <tbody className={`divide-y ${lightMode ? 'divide-slate-200' : 'divide-slate-800/80'}`}>
                   <tr>
                     <td className="p-3 font-bold">CPU Principal</td>
-                    <td className="p-3">HuC6280 (8-bit @ 7.16 MHz) + MMU (expande para até 2 MB)</td>
-                    <td className="p-3">Motorola 68000 @ ~7.67 MHz (Bus 16-bit, enxerga até 16 MB)</td>
-                    <td className="p-3">SoC CXD8530BQ (MIPS R3000A @ 33.87 MHz, 32-bit RISC)</td>
+                    <td className="p-3">HuC6280 (65C02 8-bit @ 7.16 MHz) + MMU 21-bit (8× MPR) + Timer/IRQ/IO</td>
+                    <td className="p-3">Motorola 68000 @ ~7.67 MHz (Regs 32b, ALU/Bus 16b, Addr 24b p/ 16 MB)</td>
+                    <td className="p-3">SoC CXD8530BQ (MIPS R3000A @ 33.8688 MHz, 32-bit RISC + CP0)</td>
                   </tr>
                   <tr>
-                    <td className="p-3 font-bold">Chips Auxiliares</td>
-                    <td className="p-3">Sem coprocessador (a CPU de 8 bits gerencia tudo via MMU)</td>
-                    <td className="p-3">2º Motorola 68000 @ 12.5 MHz (Mega-CD) + Zilog Z80 (Som) + ASIC</td>
-                    <td className="p-3">GTE (Geometria 3D a 66 MIPS) + MDEC (Vídeo FMV a 30 fps) no mesmo chip</td>
+                    <td className="p-3 font-bold">Coprocessadores</td>
+                    <td className="p-3">Sem coprocessador externo (HuC6280 integra PSG, Timer, MMU e Block Move)</td>
+                    <td className="p-3">Sub-CPU 68000 @ 12.5 MHz + Zilog Z80 (3.58 MHz) + Gate Array ASIC + CDC LC8951</td>
+                    <td className="p-3">COP2 GTE (66 MIPS 3D) + MDEC (IDCT FMV) no SoC + MC68HC05 no CD-ROM</td>
                   </tr>
                   <tr>
-                    <td className="p-3 font-bold">Memória RAM</td>
-                    <td className="p-3">8 KB Base + 64 KB CD-RAM + 64 KB ADPCM + Upgrade System Card</td>
-                    <td className="p-3">64 KB (Base) + 8 KB (Z80) + 512 KB (Mega-CD) + 256 KB (Word RAM)</td>
-                    <td className="p-3">2 MB EDO DRAM + 4 KB Cache + 1 KB Scratchpad ultrarrápida</td>
+                    <td className="p-3 font-bold">Memória RAM &amp; Saves</td>
+                    <td className="p-3">8 KB Base + 64 KB CD-RAM + 2 KB BRAM + 64 KB ADPCM + System Card (+192KB/+2MB)</td>
+                    <td className="p-3">64 KB Base + 8 KB Z80 + 512 KB PRG-RAM + 256 KB Word RAM + 8 KB BRAM</td>
+                    <td className="p-3">2 MB EDO DRAM + 4 KB I-Cache + 1 KB Scratchpad + Memory Card 128 KB (SIO0)</td>
                   </tr>
                   <tr>
-                    <td className="p-3 font-bold">Vídeo &amp; VRAM</td>
-                    <td className="p-3">VDC (Desenha) + VCE (Colore) • 64 KB VRAM (16-bit) • 482 cores</td>
-                    <td className="p-3">VDP: 64 KB VRAM + 128 B CRAM (64 cores) + 80 B VSRAM + ASIC</td>
-                    <td className="p-3">Sony GPU • 1 MB VRAM (Quadro 1024×512) • Sem Z-Buffer</td>
+                    <td className="p-3 font-bold">Vídeo &amp; Barramento VRAM</td>
+                    <td className="p-3">VDC (HuC6270) ↔ 64 KB VRAM (16-bit exclusivo) → Stream 9-bit p/ VCE (482 cores)</td>
+                    <td className="p-3">VDP: 64 KB VRAM + 128 B CRAM (64/183 cores) + 80 B VSRAM + ASIC Rotação/Tiles</td>
+                    <td className="p-3">Sony GPU • 1 MB Dual-Port VRAM / SGRAM (1024×512) + 2 KB Tex Cache • Sem Z-Buffer</td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-bold">Barramentos &amp; DMA</td>
+                    <td className="p-3">Bus 8-bit / 21-bit MMU + SCSI-1 (CD) + DMA interno no VDC (VRAM→SATB)</td>
+                    <td className="p-3">Árbitro BusReq ($A11100) + Bank 32KB Z80 + 16 Comm Ports ($A12010) + Bank Swap</td>
+                    <td className="p-3">Main Bus 32b (132 MB/s, 7 Canais DMA Ch0–Ch6) + Ponte BIU Sub Bus (BIOS/Timers/SIO)</td>
                   </tr>
                   <tr>
                     <td className="p-3 font-bold">Áudio &amp; CD-ROM</td>
-                    <td className="p-3">6ch PSG + Vozes ADPCM + CD 1x (150 KB/s, sem trava no disco)</td>
-                    <td className="p-3">Yamaha YM2612 (FM) + 8ch PCM (Ricoh) + CD 1x (150 KB/s)</td>
-                    <td className="p-3">SPU 24 Canais (512 KB) + CD 2x (300 KB/s, trava física no disco preto)</td>
+                    <td className="p-3">6ch Waveform PSG + OKI MSM5205 ADPCM (64 KB) + CD 1x (150 KB/s, sem trava no CD)</td>
+                    <td className="p-3">YM2612 (6ch FM) + SN76489 (4ch PSG no VDP) + Ricoh RF5C164 (8ch PCM) + CD 1x</td>
+                    <td className="p-3">SPU 24ch ADPCM (512 KB) + CD 2x (300 KB/s, CXD1815Q + 32 KB, Wobble SCEx/LibCrypt)</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            {/* Cartões das 4 Fontes Oficiais Utilizadas */}
+            {/* Cartões das Fontes Técnicas Pesquisadas */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               {[
                 {
-                  title: 'PC Engine Architecture',
-                  author: 'Rodrigo Copetti',
-                  desc: 'Análise do HuC6280, MMU de 21 bits, dupla gráfica VDC/VCE e expansão CD-ROM².',
+                  title: 'PC Engine & Archaic Pixels',
+                  author: 'Rodrigo Copetti & Archaic Pixels',
+                  desc: 'HuC6280 (MMU 21b, PSG, Timer, IRQ), barramento exclusivo VDC ↔ VRAM (16-bit) e stream 9-bit p/ VCE.',
                   url: 'https://classic.copetti.org/writings/consoles/pc-engine/'
                 },
                 {
-                  title: 'Arquitetura do Mega Drive / Genesis',
-                  author: 'Rodrigo Copetti (PT-BR)',
-                  desc: 'Análise do Motorola 68000, Z80, Árbitro de Barramento, VDP e som do Mega-CD.',
+                  title: 'Mega Drive, Mega-CD & Plutiedev',
+                  author: 'Rodrigo Copetti, Plutiedev & RetroReversing',
+                  desc: 'Dual 68000, BusReq Z80 e janela de 32 KB, Gate Array Comm Ports ($A12010), Word RAM, CDC LC8951 e Ricoh PCM.',
                   url: 'https://www.copetti.org/pt-br/writings/consoles/mega-drive-genesis/'
                 },
                 {
                   title: 'PlayStation (PS1) Architecture',
-                  author: 'Rodrigo Copetti',
-                  desc: 'Análise do chip principal, GTE, MDEC, Scratchpad de 1 KB, SPU e o visual 3D do PS1.',
-                  url: 'https://www.copetti.org/writings/consoles/playstation'
+                  author: 'Rodrigo Copetti & RetroReversing',
+                  desc: 'SoC CXD8530BQ (R3000A, GTE, MDEC, 1KB Scratchpad), Dual-Port VRAM, Ordering Table e Subsistema CD 68HC05.',
+                  url: 'https://www.copetti.org/pt-br/writings/consoles/playstation/'
                 },
                 {
-                  title: 'PS1 Hardware Architecture',
-                  author: 'RetroReversing',
-                  desc: 'Engenharia reversa do chip Sony CXD8530BQ, subsistema de CD e canais de DMA.',
-                  url: 'https://www.retroreversing.com/ps1'
+                  title: 'Nocash PSX-SPX Specifications',
+                  author: 'Martin Korth (problemkaputt.de)',
+                  desc: 'Documentação completa dos 7 canais DMA (Ch0–Ch6 OTC), cadeia FMV (DMA0/1/2), BIU, 3 Timers, SIO0 e CXD1815Q.',
+                  url: 'https://problemkaputt.de/psx-spx.htm'
                 }
               ].map((ref, idx) => (
                 <a

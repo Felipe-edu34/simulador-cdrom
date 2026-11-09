@@ -100,58 +100,66 @@ const ARCHITECTURE_DATA = {
       {
         step: 1,
         shortTitle: 'System Card',
-        title: 'Slot de Cartucho (38 pinos): System Card → CPU HuC6280',
+        title: 'Boot do CD: System Card (Slot 38p) → CPU HuC6280 ↔ Work RAM Base (8 KB $F8)',
         summary:
-          'Como o console original não sabia ler CDs de fábrica, inserimos a System Card na entrada de cartucho para fornecer o sistema de boot (BIOS) e expandir a memória RAM até a CPU.',
+          'Como o console original não sabia ler CDs de fábrica, a System Card entrega a BIOS e a RAM extra para a CPU HuC6280, que inicializa a Zero-Page, a Pilha (Stack) e os ponteiros da BIOS nos 8 KB da Work RAM Base ($F8).',
         simpleAnalogy:
-          'Como o videogame nasceu sem saber o que é um CD, colocamos um "cartão-tradutor" (System Card) na entrada de jogos. Ele ensina o aparelho a usar o CD e aumenta a mesa de trabalho (RAM).',
+          'Colocamos um "cartão-tradutor" (System Card) que ensina a CPU a usar o CD e traz mais memória, enquanto a CPU anota as variáveis vitais e a pilha de chamadas no seu bloco de notas interno de 8 KB (Work RAM Base).',
         flowSteps: [
           {
             nodeId: 'pce-syscard',
-            tag: '1. System Card (BIOS do CD-ROM²)',
+            tag: '1. System Card (BIOS ROM + Expansão de RAM)',
             iconType: 'code',
-            text: 'Entra no slot HuCard de 38 pinos e entrega as rotinas de BIOS para controlar o leitor óptico e o ADPCM.'
-          },
-          {
-            nodeId: 'pce-syscard',
-            tag: '2. System Card (Expansão de RAM)',
-            iconType: 'code',
-            text: 'Adiciona bancos extras de RAM no próprio cartão: +192 KB (Super System Card 3.0) ou +2 MB DRAM (Arcade Card).'
+            text: 'Entra no slot HuCard de 38 pinos, entrega a BIOS do CD-ROM² e adiciona +192 KB (Super) ou +2 MB (Arcade).'
           },
           {
             nodeId: 'pce-cpu',
-            tag: '3. CPU HuC6280 + MMU (8× MPR)',
+            tag: '2. CPU HuC6280 + MMU (8× MPR)',
             iconType: 'code',
-            text: 'Recebe a BIOS pelo barramento de 21 bits e mapeia os novos bancos de RAM nas janelas de 8 KB da MMU.'
+            text: 'Carrega a BIOS pelo barramento de 21 bits e configura os 8 registradores MPR da MMU (mapeando $F8 no MPR1).'
+          },
+          {
+            nodeId: 'pce-wram',
+            tag: '3. Work RAM Base (8 KB SRAM — Página $F8)',
+            iconType: 'code',
+            text: 'Aloja obrigatoriamente a Zero-Page ($2000), a Pilha de Hardware (Stack $2100) do 65C02 e as variáveis de sistema da BIOS.'
           }
         ],
         insight:
-          'Seg. Copetti: Os CDs do PC Engine não têm trava de região! A verificação acontecia apenas na pinagem do cartão HuCard (invertida entre o PC Engine japonês e o TurboGrafx-16 americano).',
+          'Seg. Copetti & Archaic Pixels: Toda CPU 65C02 depende da Zero-Page e da Pilha (Stack) para chamar funções (JSR/RTS). No PC Engine, elas ficam fixas na página $F8 (Work RAM Base de 8 KB)!',
         speechSimple:
-          '"Como o videogame original não sabia ler CDs, colocamos um cartão chamado System Card na entrada normal de jogos. Vejam a linha amarela completa levando o sistema do CD e até 2 Megabytes de memória extra direto para a CPU!"',
+          '"Como o videogame original não sabia ler CDs, colocamos o cartão System Card na entrada de jogos. Vejam a linha amarela levando o sistema do CD até a CPU, e a linha verde ligando a CPU à Work RAM Base de 8 KB, onde ficam a pilha de funções e as variáveis rápidas do sistema!"',
         speechTech:
-          '"Como o PC Engine base não tinha BIOS de CD, inserimos a System Card no slot de 38 pinos: ela fornece as rotinas de controle do CD-ROM² para a CPU HuC6280 e expande a RAM mapeada na MMU em +192 KB (Super System Card) ou +2 MB (Arcade Card)."',
-        activeNodes: ['pce-syscard', 'pce-cpu'],
-        activeBuses: ['bus-pce-hucard'],
+          '"No boot do CD-ROM², a System Card entrega a BIOS e a expansão de RAM para a CPU HuC6280, que mapeia a página física $F8 no registrador MPR1 para alojar a Zero-Page ($2000–$20FF), a Hardware Stack ($2100–$21FF) e as variáveis da BIOS nos 8 KB de Work RAM Base."',
+        activeNodes: ['pce-syscard', 'pce-cpu', 'pce-wram'],
+        activeBuses: ['bus-pce-hucard', 'bus-pce-wram'],
         packets: [
           {
             pathId: 'path-pce-hucard',
             color: '#f59e0b',
             type: 'code',
-            label: 'BIOS + RAM Extra',
+            label: '1. BIOS + RAM Extra',
             badgeX: 355,
             badgeY: 112
+          },
+          {
+            pathId: 'path-pce-wram',
+            color: '#10b981',
+            type: 'code',
+            label: '2. Zero-Page & Stack ($F8)',
+            badgeX: 170,
+            badgeY: 208
           }
         ]
       },
       {
         step: 2,
         shortTitle: 'Leitura CD 1x',
-        title: 'Leitura do CD em 1x (150 KB/s): Leitor SCSI → IFU-30 CD-RAM → CPU',
+        title: 'Leitura 1x & Execução: Leitor SCSI → 64 KB CD-RAM → CPU ↔ 8 KB Work RAM Base ($F8)',
         summary:
-          'Os 3 componentes trabalham em sequência: o leitor óptico lê o disco a 150 KB/s pelo controlador SCSI, abastece os 64 KB de memória RAM da base acoplada (IFU-30) e entrega os dados da fase para a CPU.',
+          'Os 4 componentes trabalham juntos: o leitor 1x abastece os 64 KB da CD-RAM (arquivos pesados da fase), enquanto a CPU executa o jogo usando os 8 KB da Work RAM Base ($F8) para guardar a Zero-Page, a Pilha (Stack), física, vidas e controles!',
         simpleAnalogy:
-          'O CD guarda 650 MB, mas o laser 1x lê devagar. Por isso, ele copia primeiro os dados da fase atual para uma bancada de 64 KB dentro da base acoplada antes de a CPU usar.',
+          'A CD-RAM de 64 KB é o depósito onde ficam os arquivos grandes lidos do CD (fases e desenhos), enquanto a Work RAM Base de 8 KB é a mesa rápida da CPU onde ficam os controles, a pontuação, a física e a pilha da partida!',
         flowSteps: [
           {
             nodeId: 'pce-drive',
@@ -163,29 +171,35 @@ const ARCHITECTURE_DATA = {
             nodeId: 'pce-cdram',
             tag: '2. CD-ROM² Work RAM (64 KB + 2 KB BRAM)',
             iconType: 'code',
-            text: 'Armazena o código e os gráficos da fase nos 64 KB de DRAM (256 KB no Super CD-ROM²) + 2 KB de BRAM para saves.'
+            text: 'Guarda os arquivos grandes carregados do CD (código da fase, tiles e sprites) nos bancos $80–$87 da MMU.'
           },
           {
             nodeId: 'pce-cpu',
             tag: '3. CPU HuC6280 + MMU',
             iconType: 'code',
-            text: 'Acessa os 64 KB da base pela porta traseira de expansão (mapeados nos bancos $80–$87 da MMU) para executar o jogo.'
+            text: 'Lê os dados da fase nos 64 KB da base ($80–$87) e processa a lógica da partida a 7.16 MHz.'
+          },
+          {
+            nodeId: 'pce-wram',
+            tag: '4. Work RAM Base (8 KB SRAM — Página $F8)',
+            iconType: 'code',
+            text: 'Funciona o tempo todo junto com a CPU guardando a Zero-Page, a Stack, posição X/Y dos objetos, vidas e leitura dos controles!'
           }
         ],
         insight:
-          'Diferente dos cartuchos (onde a leitura é instantânea nos chips), no CD é obrigatório copiar a fase para a memória RAM antes de jogar — criando as telas de Loading.',
+          'Por que existem duas Work RAMs? Os 64 KB da base CD-ROM² recebem os arquivos pesados vindos do CD, mas a Work RAM Base de 8 KB ($F8) continua indispensável porque é nela que o 65C02 mantém a Zero-Page, a Pilha (Stack) e o estado em tempo real da partida!',
         speechSimple:
-          '"Vejam os 3 blocos ativos: o laser lê o CD a 150 KB por segundo, guarda os arquivos da fase na memória de 64 KB da base acoplada e envia pelo barramento azul direto até a CPU!"',
+          '"Vejam os 4 blocos trabalhando juntos: o laser lê o CD a 150 KB/s para os 64 KB da base (que guardam os arquivos grandes da fase), envia para a CPU, e a CPU usa o tempo todo a Work RAM Base de 8 KB logo abaixo para guardar as vidas, a física, os controles e a pilha do jogo!"',
         speechTech:
-          '"Para carregar uma fase, o leitor 1x transfere dados a 150 KB/s via controlador SCSI para os 64 KB de Work RAM da Interface Unit (256 KB no Super CD-ROM²), e a CPU HuC6280 pagina esses bancos pela porta de expansão traseira."',
-        activeNodes: ['pce-drive', 'pce-cdram', 'pce-cpu'],
-        activeBuses: ['bus-pce-scsi', 'bus-pce-exp'],
+          '"Durante o jogo em CD atuam as duas memórias em conjunto: o leitor 1x abastece os 64 KB de DRAM da IFU-30 (bancos $80–$87 com os assets da fase), enquanto a CPU HuC6280 acessa continuamente os 8 KB de SRAM interna (página $F8) onde residem a Zero-Page, a Stack do 65C02 e as variáveis de estado da partida."',
+        activeNodes: ['pce-drive', 'pce-cdram', 'pce-cpu', 'pce-wram'],
+        activeBuses: ['bus-pce-scsi', 'bus-pce-exp', 'bus-pce-wram'],
         packets: [
           {
             pathId: 'path-pce-scsi',
             color: '#f97316',
             type: 'disc',
-            label: '150 KB/s (SCSI)',
+            label: '1. 150 KB/s (SCSI)',
             badgeX: 700,
             badgeY: 205
           },
@@ -193,9 +207,17 @@ const ARCHITECTURE_DATA = {
             pathId: 'path-pce-exp',
             color: '#38bdf8',
             type: 'code',
-            label: 'Dados p/ a CPU',
+            label: '2. Fase (64 KB CD-RAM)',
             badgeX: 355,
             badgeY: 262
+          },
+          {
+            pathId: 'path-pce-wram',
+            color: '#10b981',
+            type: 'code',
+            label: '3. Variáveis & Stack (8 KB)',
+            badgeX: 170,
+            badgeY: 208
           }
         ]
       },
@@ -707,7 +729,7 @@ const ARCHITECTURE_DATA = {
         speechTech:
           '"O fluxo gráfico final envolve 4 componentes segundo Copetti e Plutiedev: a Word RAM entrega os tiles em `$600000`, o 68000 configura o DMA do VDP, o Árbitro pausa o 68000 e o Z80 para evitar contenção de bus, e o VDP preenche os 64 KB de VRAM, 128 B de CRAM (64 cores) e 80 B de VSRAM."',
         activeNodes: ['mcd-wordram', 'mcd-maincpu', 'mcd-arbiter', 'mcd-vdp'],
-        activeBuses: ['bus-mcd-main-word', 'bus-mcd-vdp'],
+        activeBuses: ['bus-mcd-main-word', 'bus-mcd-main-ram', 'bus-mcd-vdp'],
         packets: [
           {
             pathId: 'path-mcd-main-word',
@@ -718,10 +740,18 @@ const ARCHITECTURE_DATA = {
             badgeY: 312
           },
           {
+            pathId: 'path-mcd-main-ram',
+            color: '#10b981',
+            type: 'code',
+            label: '2. Árbitro Pausa Bus',
+            badgeX: 165,
+            badgeY: 201
+          },
+          {
             pathId: 'path-mcd-vdp',
             color: '#38bdf8',
             type: 'image',
-            label: '2. DMA -> VRAM/CRAM',
+            label: '3. DMA -> VRAM/CRAM',
             badgeX: 255,
             badgeY: 312
           }
@@ -2321,6 +2351,7 @@ export default function ArquiteturaConsolesCDROM() {
                       <defs>
                         {/* Todos os caminhos começam na borda de origem e terminam na borda de destino */}
                         <path id="path-pce-hucard" d="M 425 137 L 365 137 L 365 156 L 290 156" />
+                        <path id="path-pce-wram" d="M 170 197 L 170 220" />
                         <path id="path-pce-scsi" d="M 735 237 L 665 237" />
                         <path id="path-pce-exp" d="M 425 237 L 365 237 L 365 156 L 290 156" />
                         <path id="path-pce-cpu-vdc" d="M 290 175 L 322 175 L 322 338 L 290 338" />
@@ -2388,16 +2419,6 @@ export default function ArquiteturaConsolesCDROM() {
                         strokeLinecap="round"
                         opacity="0.45"
                       />
-                      {/* Ligação CPU <-> Work RAM Base */}
-                      <line
-                        x1="170"
-                        y1="197"
-                        x2="170"
-                        y2="220"
-                        stroke={lightMode ? '#cbd5e1' : '#334155'}
-                        strokeWidth="4"
-                        opacity="0.45"
-                      />
                       <text
                         x="352"
                         y="310"
@@ -2412,6 +2433,7 @@ export default function ArquiteturaConsolesCDROM() {
 
                       {/* Barramentos Completos Direcionados (100% coloridos de ponta a ponta quando ativos) */}
                       {renderBusPath('bus-pce-hucard', 'M 425 137 L 365 137 L 365 156 L 290 156', '#f59e0b', 5)}
+                      {renderBusPath('bus-pce-wram', 'M 170 197 L 170 220', '#10b981', 5)}
                       {renderBusPath('bus-pce-scsi', 'M 735 237 L 665 237', '#f97316', 5)}
                       {renderBusPath('bus-pce-exp', 'M 425 237 L 365 237 L 365 156 L 290 156', '#38bdf8', 5)}
                       {renderBusPath('bus-pce-cpu-vdc', 'M 290 175 L 322 175 L 322 338 L 290 338', '#38bdf8', 4.5)}
@@ -2541,6 +2563,7 @@ export default function ArquiteturaConsolesCDROM() {
                         <path id="path-mcd-sub-asic" d="M 605 150 L 550 150" />
                         <path id="path-mcd-asic-word" d="M 461 194 L 461 245" />
                         <path id="path-mcd-main-word" d="M 372 285 L 335 285 L 335 150 L 305 150" />
+                        <path id="path-mcd-main-ram" d="M 165 187 L 165 215" />
                         <path id="path-mcd-vdp" d="M 305 170 L 318 170 L 318 368 L 305 368" />
                         <path id="path-mcd-z80" d="M 40 256 L 28 256 L 28 481 L 40 481" />
                         <path id="path-mcd-sub-pcm" d="M 700 331 L 700 385" />
@@ -2592,23 +2615,13 @@ export default function ArquiteturaConsolesCDROM() {
                         EXPANSÃO SEGA MEGA-CD (1991 — SUB-CPU 12.5 MHz)
                       </text>
 
-                      {/* Ligação estrutural Main-CPU <-> Árbitro */}
-                      <line
-                        x1="165"
-                        y1="187"
-                        x2="165"
-                        y2="215"
-                        stroke={lightMode ? '#cbd5e1' : '#334155'}
-                        strokeWidth="4.5"
-                        opacity="0.45"
-                      />
-
                       {/* Barramentos Completos Direcionados (Mesmo formato e direção dos pacotes!) */}
                       {renderBusPath('bus-mcd-cd', 'M 885 215 L 885 150 L 795 150', '#f97316', 5)}
                       {renderBusPath('bus-mcd-prg', 'M 700 187 L 700 245', '#10b981', 5)}
                       {renderBusPath('bus-mcd-sub-asic', 'M 605 150 L 550 150', '#a855f7', 5)}
                       {renderBusPath('bus-mcd-asic-word', 'M 461 194 L 461 245', '#a855f7', 5)}
                       {renderBusPath('bus-mcd-main-word', 'M 372 285 L 335 285 L 335 150 L 305 150', '#ec4899', 5)}
+                      {renderBusPath('bus-mcd-main-ram', 'M 165 187 L 165 215', '#10b981', 5)}
                       {renderBusPath('bus-mcd-vdp', 'M 305 170 L 318 170 L 318 368 L 305 368', '#38bdf8', 5)}
                       {renderBusPath('bus-mcd-z80', 'M 40 256 L 28 256 L 28 481 L 40 481', '#f59e0b', 4.5)}
                       {renderBusPath('bus-mcd-sub-pcm', 'M 700 331 L 700 385', '#ec4899', 5)}
